@@ -8,5 +8,6 @@ module.exports = {
         'object-curly-spacing': ['error', 'always'],
         'semi': ['error', 'always'],
         'semi-style': ['error', 'last'],
+        'eol-last': ['error', 'always'],
     }
 };
