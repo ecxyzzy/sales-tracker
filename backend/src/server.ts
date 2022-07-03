@@ -1,48 +1,42 @@
 import 'dotenv/config';
 import bodyParser from 'body-parser';
-import express, { Express } from 'express';
-import pinoHttp from 'pino-http';
+import express from 'express';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
+import pinoHttp from 'pino-http';
 import logging from './logging';
+import router from './router';
 
-// helper function to warn of the perils of running without HTTPS
-function warnNoHTTPS(msg: string) {
-    logging.warn(msg);
-    logging.warn('HTTPS will not be enabled.');
-    logging.warn('This is a potential security risk, as all passwords will be transmitted over cleartext.');
+// check HTTPS configuration
+if (!(process.env.HTTPS_PORT && process.env.HTTPS_CERT_PATH && process.env.HTTPS_KEY_PATH)) {
+    throw new Error('One or more settings required for HTTPS were not found in the configuration file.');
 }
 
 // express configuration
-const app: Express = express();
+const app = express();
 app.use(bodyParser.json());
-app.use(pinoHttp({
-    logger: logging,
-    useLevel: 'debug',
-    autoLogging: true,
-}));
+app.use(
+    pinoHttp({
+        logger: logging,
+        useLevel: 'debug',
+        autoLogging: true,
+    })
+);
+app.use(router);
 
 // HTTP(S) configuration
-const httpServer: http.Server = http.createServer(app);
+const httpServer = http.createServer(app);
+const httpsServer = https.createServer(
+    {
+        cert: fs.readFileSync(process.env.HTTPS_CERT_PATH, 'utf-8'),
+        key: fs.readFileSync(process.env.HTTPS_KEY_PATH, 'utf-8'),
+    },
+    app
+);
 httpServer.listen(process.env.HTTP_PORT, () => {
     logging.info(`sales-tracker-backend HTTP server listening on port ${process.env.HTTP_PORT}`);
 });
-let httpsServer: https.Server;
-if (process.env.HTTPS_PORT && process.env.HTTPS_CERT_PATH && process.env.HTTPS_KEY_PATH) {
-    try {
-        httpsServer = https.createServer({
-            cert: fs.readFileSync(process.env.HTTPS_CERT_PATH, 'utf-8'),
-            key: fs.readFileSync(process.env.HTTPS_KEY_PATH, 'utf-8')
-        }, app);
-        httpsServer.listen(process.env.HTTPS_PORT, () => {
-            logging.info(`sales-tracker-backend HTTPS server listening on port ${process.env.HTTPS_PORT}`);
-        });
-    } catch (e) {
-        warnNoHTTPS(`The HTTPS 
-        ${e.path === process.env.HTTPS_CERT_PATH ? 'certificate' : 'private key'} could not be read.`);
-    }
-
-} else {
-    warnNoHTTPS('One or more settings required for HTTPS were not found in the configuration file.');
-}
+httpsServer.listen(process.env.HTTPS_PORT, () => {
+    logging.info(`sales-tracker-backend HTTPS server listening on port ${process.env.HTTPS_PORT}`);
+});
