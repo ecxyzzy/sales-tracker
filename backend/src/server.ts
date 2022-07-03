@@ -1,10 +1,10 @@
+import 'dotenv/config';
 import bodyParser from 'body-parser';
 import express, { Express } from 'express';
 import pinoHttp from 'pino-http';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
-import config from './config';
 import logging from './logging';
 
 // helper function to warn of the perils of running without HTTPS
@@ -25,22 +25,22 @@ app.use(pinoHttp({
 
 // HTTP(S) configuration
 const httpServer: http.Server = http.createServer(app);
-httpServer.listen(config.httpConfig.httpPort, () => {
-    logging.info(`sales-tracker-backend HTTP server listening on port ${config.httpConfig.httpPort}`);
+httpServer.listen(process.env.HTTP_PORT, () => {
+    logging.info(`sales-tracker-backend HTTP server listening on port ${process.env.HTTP_PORT}`);
 });
 let httpsServer: https.Server;
-if (config.httpConfig.httpsPort && config.httpConfig.httpsCertificatePath && config.httpConfig.httpsPrivateKeyPath) {
+if (process.env.HTTPS_PORT && process.env.HTTPS_CERT_PATH && process.env.HTTPS_KEY_PATH) {
     try {
         httpsServer = https.createServer({
-            cert: fs.readFileSync(config.httpConfig.httpsCertificatePath),
-            key: fs.readFileSync(config.httpConfig.httpsPrivateKeyPath)
+            cert: fs.readFileSync(process.env.HTTPS_CERT_PATH),
+            key: fs.readFileSync(process.env.HTTPS_KEY_PATH)
         }, app);
-        httpsServer.listen(config.httpConfig.httpsPort, () => {
-            logging.info(`sales-tracker-backend HTTPS server listening on port ${config.httpConfig.httpsPort}`);
+        httpsServer.listen(process.env.HTTPS_PORT, () => {
+            logging.info(`sales-tracker-backend HTTPS server listening on port ${process.env.HTTPS_PORT}`);
         });
     } catch (e) {
         warnNoHTTPS(`The HTTPS 
-        ${e.path === config.httpConfig.httpsCertificatePath ? 'certificate' : 'private key'} could not be read.`);
+        ${e.path === process.env.HTTPS_CERT_PATH ? 'certificate' : 'private key'} could not be read.`);
     }
 
 } else {

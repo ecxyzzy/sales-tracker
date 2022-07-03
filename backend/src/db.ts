@@ -1,14 +1,12 @@
+import 'dotenv/config';
 import mysql from 'mysql';
-import config from './config';
 
-const connectionUri = config.dbConfig;
-if (!connectionUri.supportBigNumbers) {
-    connectionUri.supportBigNumbers = true;
-}
-if (!connectionUri.bigNumberStrings) {
-    connectionUri.supportBigNumbers = true;
-}
-
-const connection: mysql.Connection = mysql.createConnection(connectionUri);
+const connection: mysql.Connection = mysql.createConnection({
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: process.env.DB_NAME,
+});
 
 export default connection;
