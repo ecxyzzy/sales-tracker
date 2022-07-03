@@ -1,0 +1,30 @@
+import mysql from 'mysql';
+
+declare interface ServerConfig {
+    readonly httpPort: number,
+    readonly httpsPort?: number,
+    readonly httpsPrivateKeyPath?: string,
+    readonly httpsCertificatePath?: string
+}
+
+declare interface Config {
+    readonly dbConfig: mysql.ConnectionConfig,
+    readonly serverConfig: ServerConfig
+}
+
+// ONLY CHANGE VALUES BETWEEN THESE LINES
+const config: Config = {
+    dbConfig: {
+        host: 'localhost',
+        port: 3306,
+        user: 'sales-tracker',
+        password: 'sales-tracker',
+        database: 'sales-tracker',
+    },
+    serverConfig: {
+        httpPort: 8080,
+    }
+};
+// ONLY CHANGE VALUES BETWEEN THESE LINES
+
+export default config;
