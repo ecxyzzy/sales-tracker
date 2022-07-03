@@ -32,8 +32,8 @@ let httpsServer: https.Server;
 if (process.env.HTTPS_PORT && process.env.HTTPS_CERT_PATH && process.env.HTTPS_KEY_PATH) {
     try {
         httpsServer = https.createServer({
-            cert: fs.readFileSync(process.env.HTTPS_CERT_PATH),
-            key: fs.readFileSync(process.env.HTTPS_KEY_PATH)
+            cert: fs.readFileSync(process.env.HTTPS_CERT_PATH, 'utf-8'),
+            key: fs.readFileSync(process.env.HTTPS_KEY_PATH, 'utf-8')
         }, app);
         httpsServer.listen(process.env.HTTPS_PORT, () => {
             logging.info(`sales-tracker-backend HTTPS server listening on port ${process.env.HTTPS_PORT}`);
