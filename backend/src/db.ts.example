@@ -1,0 +1,15 @@
+import mysql from 'mysql';
+
+const connection: mysql.Connection = mysql.createConnection({
+    // Do not touch anything above this.
+    host: 'localhost',
+    port: 3306,
+    user: 'sales-tracker',
+    password: 'sales-tracker',
+    database: 'sales-tracker',
+    // Do not touch anything below this.
+    supportBigNumbers: true,
+    bigNumberStrings: true
+});
+
+export default connection;
