@@ -15,6 +15,7 @@ if (!(process.env.HTTPS_PORT && process.env.HTTPS_CERT_PATH && process.env.HTTPS
 
 // express configuration
 const app = express();
+app.enable('trust proxy');
 app.use(bodyParser.json());
 app.use(
     pinoHttp({
@@ -24,6 +25,12 @@ app.use(
     })
 );
 app.use(router);
+app.use((req, res, next) => {
+    if (!(process.env.NODE_ENV === 'development' || req.secure)) {
+        return res.redirect(`https://${req.headers.host}${req.url}`);
+    }
+    next();
+});
 
 // HTTP(S) configuration
 const httpServer = http.createServer(app);
