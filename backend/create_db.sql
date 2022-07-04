@@ -5,7 +5,7 @@ CREATE TABLE users (
     uid SERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
     password CHAR(60) NOT NULL,
-    is_admin BOOLEAN NOT NULL CHECK ((is_admin = 1 AND can_edit = 1) OR (is_admin = 0)),
+    is_admin BOOLEAN NOT NULL,
     can_edit BOOLEAN NOT NULL
 );
 CREATE TABLE products (

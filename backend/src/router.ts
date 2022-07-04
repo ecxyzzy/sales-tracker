@@ -48,7 +48,6 @@ router.use((err: ErrorRequestHandler, req: JWTRequest, res: Response, next: Next
         next(err);
     }
 });
-
 router.post('/login', async (req, res) => {
     if (!req.body.username) {
         sendError(res, 400, 'Username not provided');
@@ -85,12 +84,11 @@ router.post('/login', async (req, res) => {
         }
     }
 });
-
 router.post(
     '/createUser',
     expressjwt({ secret: secret, algorithms: ['HS256'] }),
     async (req: JWTRequest, res: Response) => {
-        if (!(req.auth?.isAdmin && req.auth?.canEdit)) {
+        if (!req.auth?.isAdmin) {
             return sendError(res, 401, 'Insufficient permissions');
         }
         if (!req.body.username) {
