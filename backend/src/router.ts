@@ -69,6 +69,7 @@ router.post('/login', async (req, res) => {
                     rows[0].password
                 );
                 if (result) {
+                    logger.info(`User with UID ${rows[0].uid} logged in successfully`);
                     return sendSuccess(res, {
                         token: jwt.sign(
                             { uid: rows[0].uid, isAdmin: rows[0].is_admin, canEdit: rows[0].can_edit },
@@ -79,6 +80,7 @@ router.post('/login', async (req, res) => {
                 }
             }
             sendError(res, 400, 'Invalid username or password');
+            logger.info(`Login attempt (${req.body.username} / ${req.body.password}) from ${req.ip} failed`);
         } catch (e) {
             sendError(res, 500);
             logger.error(e);
@@ -87,6 +89,7 @@ router.post('/login', async (req, res) => {
 });
 router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
+        logger.info(`User with UID ${req.auth?.uid} attempted to POST /createUser without sufficient permissions`);
         return sendError(res, 401, 'Insufficient permissions');
     }
     if (!req.body.username) {
@@ -115,6 +118,7 @@ router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) =>
                 req.body.isAdmin ?? 0,
                 req.body.canEdit ?? 0,
             ]);
+            logger.info(`User with UID ${req.auth?.uid} created new user with username ${req.body.username}`);
             return sendSuccess(res);
         } catch (e) {
             sendError(res, 500);
@@ -124,6 +128,7 @@ router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) =>
 });
 router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
+        logger.info(`User with UID ${req.auth?.uid} attempted to POST /updateUser without sufficient permissions`);
         return sendError(res, 401, 'Insufficient permissions');
     }
     if (!req.body.uid) {
@@ -156,6 +161,7 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
             if (req.body.canEdit) {
                 await db.query('UPDATE users SET can_edit = ? WHERE uid = ?;', [req.body.canEdit, req.body.uid]);
             }
+            logger.info(`User with UID ${req.auth?.uid} updated user with UID ${req.body.uid}`);
             return sendSuccess(res);
         } catch (e) {
             sendError(res, 500);
@@ -165,6 +171,7 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
 });
 router.post('/deleteUser', expressJWT, async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
+        logger.info(`User with UID ${req.auth?.uid} attempted to POST /deleteUser without sufficient permissions`);
         return sendError(res, 401, 'Insufficient permissions');
     }
     if (!req.body.uid) {
@@ -179,6 +186,7 @@ router.post('/deleteUser', expressJWT, async (req: JWTRequest, res: Response) =>
                 return sendError(res, 400, 'User does not exist');
             }
             await db.query('DELETE FROM users WHERE uid = ?', [req.body.uid]);
+            logger.info(`User with UID ${req.auth?.uid} deleted user with UID ${req.body.uid}`);
             return sendSuccess(res);
         } catch (e) {
             sendError(res, 500);
