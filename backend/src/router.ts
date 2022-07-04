@@ -81,6 +81,8 @@ router.post('/login', async (req, res) => {
         }
     }
 });
+
+// CRUD endpoints for users
 router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /createUser without sufficient permissions`);
@@ -118,6 +120,18 @@ router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) =>
             sendError(res, 500);
             logger.error(e);
         }
+    }
+});
+router.get('/getUsers', expressJWT, async (req: JWTRequest, res: Response) => {
+    try {
+        const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
+            'SELECT uid, username, is_admin, can_edit FROM users;'
+        );
+        logger.info(`User with UID ${req.auth?.uid} requested info on all users`);
+        return sendSuccess(res, rows);
+    } catch (e) {
+        sendError(res, 500);
+        logger.error(e);
     }
 });
 router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) => {
@@ -188,6 +202,7 @@ router.post('/deleteUser', expressJWT, async (req: JWTRequest, res: Response) =>
         }
     }
 });
+
 router.use((req, res) => {
     sendError(res, 404);
 });
