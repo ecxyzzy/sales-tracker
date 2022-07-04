@@ -17,7 +17,7 @@ router.post('/createProduct', async (req: JWTRequest, res: Response) => {
         sendError(res, 400, 'Product name not provided');
     } else {
         try {
-            await db.query('INSERT INTO products VALUES (0, ?);', [req.body.productName]);
+            await db.query('INSERT INTO products VALUES (DEFAULT, ?);', [req.body.productName]);
             logger.info(`User with UID ${req.auth?.uid} created new product named ${req.body.productName}`);
             return sendSuccess(res);
         } catch (e) {

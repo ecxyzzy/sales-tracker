@@ -28,7 +28,7 @@ router.post('/createUser', async (req: JWTRequest, res: Response) => {
                 ).toString('base64'),
                 10
             );
-            await db.query('INSERT INTO users VALUES (0, ?, ?, ?, ?);', [
+            await db.query('INSERT INTO users VALUES (DEFAULT, ?, ?, ?, ?);', [
                 req.body.username,
                 hashedPassword,
                 req.body.isAdmin ?? 0,

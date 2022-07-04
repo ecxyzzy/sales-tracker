@@ -9,11 +9,6 @@ import logger from './logger';
 import router from './router';
 import { httpsCert, httpsKey } from './secrets';
 
-// check HTTPS configuration
-if (!(process.env.HTTPS_PORT && process.env.HTTPS_CERT_PATH && process.env.HTTPS_KEY_PATH)) {
-    throw new Error('One or more settings required for HTTPS were not found in the configuration file.');
-}
-
 // express configuration
 const app = express();
 app.enable('trust proxy');
@@ -34,6 +29,7 @@ app.use((req, res, next) => {
 });
 app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
     if (err.name === 'UnauthorizedError') {
+        logger.info(`Unauthorized access attempt with token ${req.headers['authorization']} from ${req.ip}`);
         return sendError(res, 401, 'Invalid token');
     }
     next(err);
