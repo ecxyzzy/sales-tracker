@@ -26,13 +26,13 @@ router.post('/login', async (req, res) => {
                         crypto.createHmac('sha256', authKey).update(req.body.password).digest('hex'),
                         'hex'
                     ).toString('base64'),
-                    rows[0].hashed_password
+                    rows[0].hashedPassword
                 );
                 if (result) {
                     logger.info(`User with UID ${rows[0].uid} logged in successfully`);
                     return sendSuccess(res, {
                         token: jwt.sign(
-                            { uid: rows[0].uid, isAdmin: rows[0].is_admin, isHandler: rows[0].is_handler },
+                            { uid: rows[0].uid, isAdmin: rows[0].isAdmin, isHandler: rows[0].isHandler },
                             authKey,
                             { algorithm: 'HS256', expiresIn: '1h' }
                         ),

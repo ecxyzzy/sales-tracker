@@ -48,7 +48,7 @@ router.post('/createUser', async (req: JWTRequest, res: Response) => {
 router.get('/getUsers', async (req: JWTRequest, res: Response) => {
     try {
         const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-            'SELECT uid, username, is_admin, is_handler FROM users;'
+            'SELECT uid, username, isAdmin, isHandler FROM users;'
         );
         logger.info(`User with UID ${req.auth?.uid} requested info on all users`);
         return sendSuccess(res, rows);
@@ -88,24 +88,24 @@ router.post('/updateUser', async (req: JWTRequest, res: Response) => {
                     ).toString('base64'),
                     10
                 );
-                await db.query('UPDATE users SET hashed_password = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
+                await db.query('UPDATE users SET hashedPassword = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
                 logger.info(
                     `User with UID ${req.auth?.uid} changed password for user ${req.body.username} with UID ${req.body.uid}`
                 );
             }
-            if (req.body.isAdmin != rows[0].is_admin) {
-                await db.query('UPDATE users SET is_admin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
+            if (req.body.isAdmin != rows[0].isAdmin) {
+                await db.query('UPDATE users SET isAdmin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
                 logger.info(
                     `User with UID ${req.auth?.uid} ${
-                        !rows[0].is_admin && req.body.isAdmin ? 'granted' : 'revoked'
+                        !rows[0].isAdmin && req.body.isAdmin ? 'granted' : 'revoked'
                     } administrator privileges for user ${req.body.username} with UID ${req.body.uid}`
                 );
             }
-            if (req.body.isHandler != rows[0].is_handler) {
-                await db.query('UPDATE users SET is_handler = ? WHERE uid = ?;', [req.body.isHandler, req.body.uid]);
+            if (req.body.isHandler != rows[0].isHandler) {
+                await db.query('UPDATE users SET isHandler = ? WHERE uid = ?;', [req.body.isHandler, req.body.uid]);
                 logger.info(
                     `User with UID ${req.auth?.uid} ${
-                        !rows[0].is_handler && req.body.isHandler ? 'granted' : 'revoked'
+                        !rows[0].isHandler && req.body.isHandler ? 'granted' : 'revoked'
                     } handler privileges for user ${req.body.username} with UID ${req.body.uid}`
                 );
             }

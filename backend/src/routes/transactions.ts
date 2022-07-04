@@ -1,7 +1,5 @@
 import { Response, Router } from 'express';
 import { expressjwt, Request as JWTRequest } from 'express-jwt';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { FieldPacket, RowDataPacket } from 'mysql2';
 import db from '../db';
 import { sendError, sendSuccess } from '../helper';
@@ -10,12 +8,14 @@ import { authKey } from '../secrets';
 
 const requiredFields: Array<string> = [
     'transactionDate',
-    'transactionProduct',
+    'product',
     'transactionCount',
     'price',
     'actualTotal',
     'handler1',
 ];
+
+const allFields: Array<string> = [...requiredFields, 'handler2', 'handler3', 'remarks'];
 
 const router = Router();
 router.use(expressjwt({ secret: authKey, algorithms: ['HS256'] }));
@@ -42,7 +42,7 @@ router.post('/createTransaction', async (req: JWTRequest, res: Response) => {
         try {
             await db.query('INSERT INTO transactions VALUES (DEFAULT, ?, ?, ?, ?, DEFAULT, ?, ?, ?, ?, ?)', [
                 new Date(req.body.transactionDate),
-                req.body.transactionProduct,
+                req.body.product,
                 req.body.transactionCount,
                 req.body.price,
                 req.body.actualTotal,
@@ -81,25 +81,14 @@ router.post('/updateTransaction', async (req: JWTRequest, res: Response) => {
         try {
             const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
                 'SELECT * FROM transactions WHERE tid = ? LIMIT 1;',
-                [req.body.uid]
+                [req.body.tid]
             );
             if (!rows.length) {
                 return sendError(res, 400, 'Transaction does not exist');
             }
             await db.query(
-                'UPDATE transactions SET t_date = ?, t_product = ?, t_count = ?, price = ?, act_total = ?, handler1 = ?, handler2 = ?, handler3 = ?, remarks = ? WHERE tid = ?',
-                [
-                    req.body.transactionDate ?? rows[0].t_date,
-                    req.body.transactionProduct ?? rows[0].t_product,
-                    req.body.transactionCount ?? rows[0].t_count,
-                    req.body.price ?? rows[0].price,
-                    req.body.actualTotal ?? rows[0].act_total,
-                    req.body.handler1 ?? rows[0].handler1,
-                    req.body.handler2 ?? rows[0].handler2,
-                    req.body.handler3 ?? rows[0].handler3,
-                    req.body.remarks ?? rows[0].remarks,
-                    req.body.tid,
-                ]
+                'UPDATE transactions SET transactionDate = ?, product = ?, transactionCount = ?, price = ?, actualTotal = ?, handler1 = ?, handler2 = ?, handler3 = ?, remarks = ? WHERE tid = ?',
+                [...allFields.map((x) => req.body[x] ?? rows[0][x]), req.body.tid]
             );
             logger.info(`User with UID ${req.auth?.uid} updated transaction with TID ${req.body.tid}`);
             logger.info(`Transaction change-set: ${req.body}`);
