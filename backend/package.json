@@ -33,6 +33,7 @@
     "prebuild": "eslint src/**/*",
     "build": "tsc",
     "prestart": "eslint src/**/*",
-    "start": "npx nodemon src/server.ts"
+    "start": "npx nodemon src/server.ts",
+    "lint": "eslint src/**/* --fix"
   }
 }

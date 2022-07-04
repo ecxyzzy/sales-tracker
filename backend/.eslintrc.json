@@ -4,7 +4,7 @@
     "plugins": ["@typescript-eslint"],
     "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
     "rules": {
-        "semi-style": ["error", "last"],
-        "eol-last": ["error", "always"]
+        "semi-style": "error",
+        "eol-last": "error"
     }
 }
