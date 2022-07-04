@@ -19,7 +19,7 @@ const httpCodes: Record<number, string> = {
     500: 'Internal Server Error',
 };
 
-// helper function for sending responses
+// helper functions for sending responses
 function sendSuccess(res: Response, payload?: object) {
     res.status(200);
     res.json({
@@ -28,7 +28,6 @@ function sendSuccess(res: Response, payload?: object) {
         payload: payload,
     });
 }
-
 function sendError(res: Response, status: number, message?: string) {
     res.status(status);
     res.json({
@@ -39,8 +38,10 @@ function sendError(res: Response, status: number, message?: string) {
     });
 }
 
-const router = Router();
+// configure express-jwt with defaults
+const expressJWT = expressjwt({ secret: secret, algorithms: ['HS256'] });
 
+const router = Router();
 router.use((err: ErrorRequestHandler, req: JWTRequest, res: Response, next: NextFunction) => {
     if (err.name === 'UnauthorizedError') {
         return sendError(res, 401, 'Invalid token');
@@ -84,26 +85,62 @@ router.post('/login', async (req, res) => {
         }
     }
 });
-router.post(
-    '/createUser',
-    expressjwt({ secret: secret, algorithms: ['HS256'] }),
-    async (req: JWTRequest, res: Response) => {
-        if (!req.auth?.isAdmin) {
-            return sendError(res, 401, 'Insufficient permissions');
+router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) => {
+    if (!req.auth?.isAdmin) {
+        return sendError(res, 401, 'Insufficient permissions');
+    }
+    if (!req.body.username) {
+        sendError(res, 400, 'Username not provided');
+    } else if (!req.body.password) {
+        sendError(res, 400, 'Password not provided');
+    } else {
+        try {
+            const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
+                'SELECT 1 FROM users WHERE username = ? LIMIT 1;',
+                [req.body.username]
+            );
+            if (rows.length) {
+                return sendError(res, 400, 'User with that username already exists');
+            }
+            const hashedPassword = await bcrypt.hash(
+                Buffer.from(
+                    crypto.createHmac('sha256', secret).update(req.body.password).digest('hex'),
+                    'hex'
+                ).toString('base64'),
+                10
+            );
+            await db.query('INSERT INTO users VALUES (0, ?, ?, ?, ?);', [
+                req.body.username,
+                hashedPassword,
+                req.body.isAdmin ?? 0,
+                req.body.canEdit ?? 0,
+            ]);
+            return sendSuccess(res);
+        } catch (e) {
+            sendError(res, 500);
+            logging.error(e);
         }
-        if (!req.body.username) {
-            sendError(res, 400, 'Username not provided');
-        } else if (!req.body.password) {
-            sendError(res, 400, 'Password not provided');
-        } else {
-            try {
-                const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-                    'SELECT 1 FROM users WHERE username = ? LIMIT 1;',
-                    [req.body.username]
-                );
-                if (rows.length) {
-                    return sendError(res, 400, 'User with that username already exists');
-                }
+    }
+});
+router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) => {
+    if (!req.auth?.isAdmin) {
+        return sendError(res, 401, 'Insufficient permissions');
+    }
+    if (!req.body.uid) {
+        sendError(res, 400, 'User ID not provided');
+    } else {
+        try {
+            const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
+                'SELECT * FROM users WHERE username = ? LIMIT 1;',
+                [req.body.username]
+            );
+            if (!rows.length) {
+                return sendError(res, 400, 'User does not exist');
+            }
+            if (req.body.username) {
+                await db.query('UPDATE users SET username = ? WHERE uid = ?;', [req.body.username, req.body.uid]);
+            }
+            if (req.body.password) {
                 const hashedPassword = await bcrypt.hash(
                     Buffer.from(
                         crypto.createHmac('sha256', secret).update(req.body.password).digest('hex'),
@@ -111,65 +148,21 @@ router.post(
                     ).toString('base64'),
                     10
                 );
-                await db.query('INSERT INTO users VALUES (0, ?, ?, ?, ?);', [
-                    req.body.username,
-                    hashedPassword,
-                    req.body.isAdmin ?? 0,
-                    req.body.canEdit ?? 0,
-                ]);
-                return sendSuccess(res);
-            } catch (e) {
-                sendError(res, 500);
-                logging.error(e);
+                await db.query('UPDATE users SET password = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
             }
+            if (req.body.isAdmin) {
+                await db.query('UPDATE users SET isAdmin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
+            }
+            if (req.body.canEdit) {
+                await db.query('UPDATE users SET canEdit = ? WHERE uid = ?;', [req.body.canEdit, req.body.uid]);
+            }
+            return sendSuccess(res);
+        } catch (e) {
+            sendError(res, 500);
+            logging.error(e);
         }
     }
-);
-router.post(
-    '/updateUser',
-    expressjwt({ secret: secret, algorithms: ['HS256'] }),
-    async (req: JWTRequest, res: Response) => {
-        if (!req.auth?.isAdmin) {
-            return sendError(res, 401, 'Insufficient permissions');
-        }
-        if (!req.body.uid) {
-            sendError(res, 400, 'User ID not provided');
-        } else {
-            try {
-                const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-                    'SELECT * FROM users WHERE username = ? LIMIT 1;',
-                    [req.body.username]
-                );
-                if (!rows.length) {
-                    return sendError(res, 400, 'User does not exist');
-                }
-                if (req.body.username) {
-                    await db.query('UPDATE users SET username = ? WHERE uid = ?;', [req.body.username, req.body.uid]);
-                }
-                if (req.body.password) {
-                    const hashedPassword = await bcrypt.hash(
-                        Buffer.from(
-                            crypto.createHmac('sha256', secret).update(req.body.password).digest('hex'),
-                            'hex'
-                        ).toString('base64'),
-                        10
-                    );
-                    await db.query('UPDATE users SET password = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
-                }
-                if (req.body.isAdmin) {
-                    await db.query('UPDATE users SET isAdmin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
-                }
-                if (req.body.canEdit) {
-                    await db.query('UPDATE users SET canEdit = ? WHERE uid = ?;', [req.body.canEdit, req.body.uid]);
-                }
-                return sendSuccess(res);
-            } catch (e) {
-                sendError(res, 500);
-                logging.error(e);
-            }
-        }
-    }
-);
+});
 router.use((req, res) => {
     sendError(res, 404);
 });
