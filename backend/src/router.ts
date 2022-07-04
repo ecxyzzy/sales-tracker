@@ -131,8 +131,8 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
     } else {
         try {
             const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-                'SELECT * FROM users WHERE username = ? LIMIT 1;',
-                [req.body.username]
+                'SELECT * FROM users WHERE uid = ? LIMIT 1;',
+                [req.body.uid]
             );
             if (!rows.length) {
                 return sendError(res, 400, 'User does not exist');
