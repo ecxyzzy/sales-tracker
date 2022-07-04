@@ -116,7 +116,7 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
     } else {
         try {
             const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-                'SELECT 1 FROM users WHERE uid = ? LIMIT 1;',
+                'SELECT * FROM users WHERE uid = ? LIMIT 1;',
                 [req.body.uid]
             );
             if (!rows.length) {
@@ -124,6 +124,10 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
             }
             if (req.body.username) {
                 await db.query('UPDATE users SET username = ? WHERE uid = ?;', [req.body.username, req.body.uid]);
+                logger.info(
+                    `User with UID ${req.auth?.uid} renamed user with UID ${req.body.uid} (${rows[0].username} => ${req.body.username}`
+                );
+                req.body.username = rows[0].username;
             }
             if (req.body.password) {
                 const hashedPassword = await bcrypt.hash(
@@ -134,14 +138,26 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
                     10
                 );
                 await db.query('UPDATE users SET hashed_password = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
+                logger.info(
+                    `User with UID ${req.auth?.uid} changed password for user ${req.body.username} with UID ${req.body.uid}`
+                );
             }
-            if (req.body.isAdmin) {
+            if (req.body.isAdmin != rows[0].is_admin) {
                 await db.query('UPDATE users SET is_admin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
+                logger.info(
+                    `User with UID ${req.auth?.uid} ${
+                        !rows[0].is_admin && req.body.isAdmin ? 'granted' : 'revoked'
+                    } administrator privileges for user ${req.body.username} with UID ${req.body.uid}`
+                );
             }
-            if (req.body.canEdit) {
+            if (req.body.canEdit != rows[0].can_edit) {
                 await db.query('UPDATE users SET can_edit = ? WHERE uid = ?;', [req.body.canEdit, req.body.uid]);
+                logger.info(
+                    `User with UID ${req.auth?.uid} ${
+                        !rows[0].can_edit && req.body.canEdit ? 'granted' : 'revoked'
+                    } handler privileges for user ${req.body.username} with UID ${req.body.uid}`
+                );
             }
-            logger.info(`User with UID ${req.auth?.uid} updated user with UID ${req.body.uid}`);
             return sendSuccess(res);
         } catch (e) {
             sendError(res, 500);
