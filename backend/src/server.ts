@@ -6,6 +6,7 @@ import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import pinoHttp from 'pino-http';
+import { sendError } from './helper';
 import logger from './logger';
 import router from './router';
 
@@ -33,18 +34,10 @@ app.use((req, res, next) => {
     next();
 });
 app.use((err: ErrorRequestHandler, req: JWTRequest, res: Response, next: NextFunction) => {
-    console.log(err);
     if (err.name === 'UnauthorizedError') {
-        res.status(401);
-        res.json({
-            timestamp: new Date().toISOString(),
-            status: 401,
-            error: 'Unauthorized',
-            message: 'Invalid token',
-        });
-    } else {
-        next(err);
+        return sendError(res, 401, 'Invalid token');
     }
+    next(err);
 });
 
 // HTTP(S) configuration

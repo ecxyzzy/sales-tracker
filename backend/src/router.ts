@@ -4,39 +4,13 @@ import { Response, Router } from 'express';
 import { expressjwt, Request as JWTRequest } from 'express-jwt';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
-import logger from './logger';
 import { FieldPacket, RowDataPacket } from 'mysql2';
 import db from './db';
+import { sendSuccess, sendError } from './helper';
+import logger from './logger';
 
 // private key for hashing passwords/signing JWTs
 const secret = fs.readFileSync(process.env.AUTH_KEY_PATH);
-
-// mapping of HTTP/1.1 status codes to phrases
-const httpCodes: Record<number, string> = {
-    400: 'Bad Request',
-    401: 'Unauthorized',
-    404: 'Not Found',
-    500: 'Internal Server Error',
-};
-
-// helper functions for sending responses
-function sendSuccess(res: Response, payload?: object) {
-    res.status(200);
-    res.json({
-        timestamp: new Date().toISOString(),
-        status: 200,
-        payload: payload,
-    });
-}
-function sendError(res: Response, status: number, message?: string) {
-    res.status(status);
-    res.json({
-        timestamp: new Date().toISOString(),
-        status: status,
-        error: httpCodes[status],
-        message: message,
-    });
-}
 
 // configure express-jwt with defaults
 const expressJWT = expressjwt({ secret: secret, algorithms: ['HS256'] });
