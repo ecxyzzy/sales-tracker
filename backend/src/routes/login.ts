@@ -26,7 +26,7 @@ router.post('/login', async (req, res) => {
                         crypto.createHmac('sha256', authKey).update(req.body.password).digest('hex'),
                         'hex'
                     ).toString('base64'),
-                    rows[0].password
+                    rows[0].hashed_password
                 );
                 if (result) {
                     logger.info(`User with UID ${rows[0].uid} logged in successfully`);
