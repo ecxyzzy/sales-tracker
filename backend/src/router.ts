@@ -42,7 +42,7 @@ router.post('/login', async (req, res) => {
                     logger.info(`User with UID ${rows[0].uid} logged in successfully`);
                     return sendSuccess(res, {
                         token: jwt.sign(
-                            { uid: rows[0].uid, isAdmin: rows[0].is_admin, canEdit: rows[0].can_edit },
+                            { uid: rows[0].uid, isAdmin: rows[0].is_admin, isHandler: rows[0].is_handler },
                             secret,
                             { algorithm: 'HS256', expiresIn: '1h' }
                         ),
@@ -81,7 +81,7 @@ router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) =>
                 req.body.username,
                 hashedPassword,
                 req.body.isAdmin ?? 0,
-                req.body.canEdit ?? 0,
+                req.body.isHandler ?? 0,
             ]);
             logger.info(`User with UID ${req.auth?.uid} created new user with username ${req.body.username}`);
             return sendSuccess(res);
@@ -97,7 +97,7 @@ router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) =>
 router.get('/getUsers', expressJWT, async (req: JWTRequest, res: Response) => {
     try {
         const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-            'SELECT uid, username, is_admin, can_edit FROM users;'
+            'SELECT uid, username, is_admin, is_handler FROM users;'
         );
         logger.info(`User with UID ${req.auth?.uid} requested info on all users`);
         return sendSuccess(res, rows);
@@ -150,11 +150,11 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
                     } administrator privileges for user ${req.body.username} with UID ${req.body.uid}`
                 );
             }
-            if (req.body.canEdit != rows[0].can_edit) {
-                await db.query('UPDATE users SET can_edit = ? WHERE uid = ?;', [req.body.canEdit, req.body.uid]);
+            if (req.body.isHandler != rows[0].is_handler) {
+                await db.query('UPDATE users SET is_handler = ? WHERE uid = ?;', [req.body.isHandler, req.body.uid]);
                 logger.info(
                     `User with UID ${req.auth?.uid} ${
-                        !rows[0].can_edit && req.body.canEdit ? 'granted' : 'revoked'
+                        !rows[0].is_handler && req.body.isHandler ? 'granted' : 'revoked'
                     } handler privileges for user ${req.body.username} with UID ${req.body.uid}`
                 );
             }
@@ -193,7 +193,7 @@ router.post('/deleteUser', expressJWT, async (req: JWTRequest, res: Response) =>
 
 // CRUD endpoints for products
 router.post('/createProduct', expressJWT, async (req: JWTRequest, res: Response) => {
-    if (!(req.auth?.isAdmin || req.auth?.canEdit)) {
+    if (!(req.auth?.isAdmin || req.auth?.isHandler)) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /createProduct without sufficient permissions`);
         return sendError(res, 401, 'Insufficient permissions');
     }
@@ -224,7 +224,7 @@ router.get('/getProducts', expressJWT, async (req: JWTRequest, res: Response) =>
     }
 });
 router.post('/updateProduct', expressJWT, async (req: JWTRequest, res: Response) => {
-    if (!(req.auth?.isAdmin || req.auth?.canEdit)) {
+    if (!(req.auth?.isAdmin || req.auth?.isHandler)) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /updateProduct without sufficient permissions`);
         return sendError(res, 401, 'Insufficient permissions');
     }
@@ -253,7 +253,7 @@ router.post('/updateProduct', expressJWT, async (req: JWTRequest, res: Response)
     }
 });
 router.post('/deleteProduct', expressJWT, async (req: JWTRequest, res: Response) => {
-    if (!(req.auth?.isAdmin || req.auth?.canEdit)) {
+    if (!(req.auth?.isAdmin || req.auth?.isHandler)) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /deleteProduct without sufficient permissions`);
         return sendError(res, 401, 'Insufficient permissions');
     }

@@ -6,11 +6,11 @@ CREATE TABLE users (
     username VARCHAR(255) NOT NULL UNIQUE,
     hashed_password CHAR(60) NOT NULL,
     is_admin BOOLEAN NOT NULL,
-    can_edit BOOLEAN NOT NULL
+    is_handler BOOLEAN NOT NULL
 );
 CREATE TABLE products (
     pid SERIAL PRIMARY KEY,
-    p_name VARCHAR(255) NOT NULL
+    p_name VARCHAR(255) NOT NULL UNIQUE
 );
 CREATE TABLE transactions (
     tid SERIAL PRIMARY KEY,
@@ -23,7 +23,7 @@ CREATE TABLE transactions (
     handler1 BIGINT UNSIGNED NOT NULL,
     handler2 BIGINT UNSIGNED,
     handler3 BIGINT UNSIGNED,
-    remarks VARCHAR(255),
+    remarks TEXT,
     FOREIGN KEY (t_product) REFERENCES products(pid),
     FOREIGN KEY (handler1) REFERENCES users(uid),
     FOREIGN KEY (handler2) REFERENCES users(uid),
