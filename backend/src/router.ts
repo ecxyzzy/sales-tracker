@@ -33,7 +33,6 @@ router.post('/login', async (req, res) => {
             [req.body.username]
         );
         if (rows.length) {
-            console.log()
             const result = await bcrypt.compare(
                 Buffer.from(
                     crypto.createHmac('sha384', secret).update(req.body.password).digest('hex'),
@@ -46,7 +45,11 @@ router.post('/login', async (req, res) => {
                 res.json({
                     timestamp: timestamp,
                     status: 200,
-                    token: jwt.sign({uid: rows[0].uid}, secret, { expiresIn: '1h' }),
+                    token: jwt.sign(
+                        { uid: rows[0].uid, isAdmin: rows[0].is_admin, canEdit: rows[0].can_edit },
+                        secret,
+                        { expiresIn: '1h' }
+                    ),
                 });
                 return;
             }
