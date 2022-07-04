@@ -163,6 +163,29 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
         }
     }
 });
+router.post('/deleteUser', expressJWT, async (req: JWTRequest, res: Response) => {
+    if (!req.auth?.isAdmin) {
+        return sendError(res, 401, 'Insufficient permissions');
+    }
+    if (!req.body.uid) {
+        sendError(res, 400, 'User ID not provided');
+    } else {
+        try {
+            const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
+                'SELECT 1 FROM users WHERE uid = ? LIMIT 1;',
+                [req.body.uid]
+            );
+            if (!rows.length) {
+                return sendError(res, 400, 'User does not exist');
+            }
+            await db.query('DELETE FROM users WHERE uid = ?', [req.body.uid]);
+            return sendSuccess(res);
+        } catch (e) {
+            sendError(res, 500);
+            logging.error(e);
+        }
+    }
+});
 router.use((req, res) => {
     sendError(res, 404);
 });
