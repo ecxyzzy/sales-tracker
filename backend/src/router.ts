@@ -15,7 +15,9 @@ const secret = fs.readFileSync(process.env.AUTH_KEY_PATH);
 // configure express-jwt with defaults
 const expressJWT = expressjwt({ secret: secret, algorithms: ['HS256'] });
 
+// router configuration
 const router = Router();
+
 // login endpoint
 router.post('/login', async (req, res) => {
     if (!req.body.username) {
@@ -157,14 +159,101 @@ router.post('/deleteUser', expressJWT, async (req: JWTRequest, res: Response) =>
     } else {
         try {
             const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-                'SELECT 1 FROM users WHERE uid = ? LIMIT 1;',
+                'SELECT * FROM users WHERE uid = ? LIMIT 1;',
                 [req.body.uid]
             );
             if (!rows.length) {
                 return sendError(res, 400, 'User does not exist');
             }
             await db.query('DELETE FROM users WHERE uid = ?', [req.body.uid]);
-            logger.info(`User with UID ${req.auth?.uid} deleted user with UID ${req.body.uid}`);
+            logger.info(`User with UID ${req.auth?.uid} deleted user ${rows[0].username} with UID ${req.body.uid}`);
+            return sendSuccess(res);
+        } catch (e) {
+            sendError(res, 500);
+            logger.error(e);
+        }
+    }
+});
+
+// CRUD endpoints for products
+router.post('/createProduct', expressJWT, async (req: JWTRequest, res: Response) => {
+    if (!(req.auth?.isAdmin || req.auth?.canEdit)) {
+        logger.info(`User with UID ${req.auth?.uid} attempted to POST /createProduct without sufficient permissions`);
+        return sendError(res, 401, 'Insufficient permissions');
+    }
+    if (!req.body.productName) {
+        sendError(res, 400, 'Product name not provided');
+    } else {
+        try {
+            await db.query('INSERT INTO products VALUES (0, ?);', [req.body.productName]);
+            logger.info(`User with UID ${req.auth?.uid} created new product named ${req.body.productName}`);
+            return sendSuccess(res);
+        } catch (e) {
+            if (e.code === 'ER_DUP_ENTRY') {
+                return sendError(res, 400, 'Product with that name already exists');
+            }
+            sendError(res, 500);
+            logger.error(e);
+        }
+    }
+});
+router.get('/getProducts', expressJWT, async (req: JWTRequest, res: Response) => {
+    try {
+        const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query('SELECT pid, p_name FROM products;');
+        logger.info(`User with UID ${req.auth?.uid} requested info on all products`);
+        return sendSuccess(res, rows);
+    } catch (e) {
+        sendError(res, 500);
+        logger.error(e);
+    }
+});
+router.post('/updateProduct', expressJWT, async (req: JWTRequest, res: Response) => {
+    if (!(req.auth?.isAdmin || req.auth?.canEdit)) {
+        logger.info(`User with UID ${req.auth?.uid} attempted to POST /updateProduct without sufficient permissions`);
+        return sendError(res, 401, 'Insufficient permissions');
+    }
+    if (!req.body.pid) {
+        sendError(res, 400, 'Product ID not provided');
+    } else {
+        try {
+            const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
+                'SELECT * FROM users WHERE uid = ? LIMIT 1;',
+                [req.body.uid]
+            );
+            if (!rows.length) {
+                return sendError(res, 400, 'Product does not exist');
+            }
+            if (req.body.productName) {
+                await db.query('UPDATE products SET p_name = ? WHERE pid = ?;', [req.body.productName, req.body.pid]);
+                logger.info(
+                    `User with UID ${req.auth?.uid} renamed product with PID ${req.body.pid} (${rows[0].p_name} => ${req.body.productName})`
+                );
+            }
+            return sendSuccess(res);
+        } catch (e) {
+            sendError(res, 500);
+            logger.error(e);
+        }
+    }
+});
+router.post('/deleteProduct', expressJWT, async (req: JWTRequest, res: Response) => {
+    if (!(req.auth?.isAdmin || req.auth?.canEdit)) {
+        logger.info(`User with UID ${req.auth?.uid} attempted to POST /deleteProduct without sufficient permissions`);
+        return sendError(res, 401, 'Insufficient permissions');
+    }
+    if (!req.body.pid) {
+        sendError(res, 400, 'Product ID not provided');
+    } else {
+        try {
+            const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
+                'SELECT * FROM products WHERE pid = ? LIMIT 1;',
+                [req.body.pid]
+            );
+            if (!rows.length) {
+                return sendError(res, 400, 'Product does not exist');
+            }
+            await db.query('DELETE FROM users WHERE uid = ?', [req.body.uid]);
+            logger.info(`User with UID ${req.auth?.uid} deleted product ${rows[0].p_name} with PID ${req.body.uid}`);
             return sendSuccess(res);
         } catch (e) {
             sendError(res, 500);
