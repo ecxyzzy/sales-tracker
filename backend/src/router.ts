@@ -125,7 +125,51 @@ router.post(
         }
     }
 );
-
+router.post(
+    '/updateUser',
+    expressjwt({ secret: secret, algorithms: ['HS256'] }),
+    async (req: JWTRequest, res: Response) => {
+        if (!req.auth?.isAdmin) {
+            return sendError(res, 401, 'Insufficient permissions');
+        }
+        if (!req.body.uid) {
+            sendError(res, 400, 'User ID not provided');
+        } else {
+            try {
+                const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
+                    'SELECT * FROM users WHERE username = ? LIMIT 1;',
+                    [req.body.username]
+                );
+                if (!rows.length) {
+                    return sendError(res, 400, 'User does not exist');
+                }
+                if (req.body.username) {
+                    await db.query('UPDATE users SET username = ? WHERE uid = ?;', [req.body.username, req.body.uid]);
+                }
+                if (req.body.password) {
+                    const hashedPassword = await bcrypt.hash(
+                        Buffer.from(
+                            crypto.createHmac('sha256', secret).update(req.body.password).digest('hex'),
+                            'hex'
+                        ).toString('base64'),
+                        10
+                    );
+                    await db.query('UPDATE users SET password = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
+                }
+                if (req.body.isAdmin) {
+                    await db.query('UPDATE users SET isAdmin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
+                }
+                if (req.body.canEdit) {
+                    await db.query('UPDATE users SET canEdit = ? WHERE uid = ?;', [req.body.canEdit, req.body.uid]);
+                }
+                return sendSuccess(res);
+            } catch (e) {
+                sendError(res, 500);
+                logging.error(e);
+            }
+        }
+    }
+);
 router.use((req, res) => {
     sendError(res, 404);
 });
