@@ -4,7 +4,7 @@ USE sales_tracker;
 CREATE TABLE users (
     uid SERIAL PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
-    password CHAR(60) NOT NULL,
+    hashed_password CHAR(60) NOT NULL,
     is_admin BOOLEAN NOT NULL,
     can_edit BOOLEAN NOT NULL
 );

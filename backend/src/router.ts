@@ -148,13 +148,13 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
                     ).toString('base64'),
                     10
                 );
-                await db.query('UPDATE users SET password = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
+                await db.query('UPDATE users SET hashed_password = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
             }
             if (req.body.isAdmin) {
-                await db.query('UPDATE users SET isAdmin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
+                await db.query('UPDATE users SET is_admin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
             }
             if (req.body.canEdit) {
-                await db.query('UPDATE users SET canEdit = ? WHERE uid = ?;', [req.body.canEdit, req.body.uid]);
+                await db.query('UPDATE users SET can_edit = ? WHERE uid = ?;', [req.body.canEdit, req.body.uid]);
             }
             return sendSuccess(res);
         } catch (e) {
