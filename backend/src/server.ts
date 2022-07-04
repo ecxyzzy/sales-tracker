@@ -1,14 +1,13 @@
 import 'dotenv/config';
 import bodyParser from 'body-parser';
-import express, { ErrorRequestHandler, NextFunction, Response } from 'express';
-import { Request as JWTRequest } from 'express-jwt';
-import fs from 'fs';
+import express, { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import http from 'http';
 import https from 'https';
 import pinoHttp from 'pino-http';
 import { sendError } from './helper';
 import logger from './logger';
 import router from './router';
+import { httpsCert, httpsKey } from './secrets';
 
 // check HTTPS configuration
 if (!(process.env.HTTPS_PORT && process.env.HTTPS_CERT_PATH && process.env.HTTPS_KEY_PATH)) {
@@ -26,14 +25,14 @@ app.use(
         autoLogging: true,
     })
 );
-app.use('/', router);
+app.use(router);
 app.use((req, res, next) => {
     if (!(process.env.NODE_ENV === 'development' || req.secure)) {
         return res.redirect(`https://${req.headers.host}${req.url}`);
     }
     next();
 });
-app.use((err: ErrorRequestHandler, req: JWTRequest, res: Response, next: NextFunction) => {
+app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
     if (err.name === 'UnauthorizedError') {
         return sendError(res, 401, 'Invalid token');
     }
@@ -44,8 +43,8 @@ app.use((err: ErrorRequestHandler, req: JWTRequest, res: Response, next: NextFun
 const httpServer = http.createServer(app);
 const httpsServer = https.createServer(
     {
-        cert: fs.readFileSync(process.env.HTTPS_CERT_PATH, 'utf-8'),
-        key: fs.readFileSync(process.env.HTTPS_KEY_PATH, 'utf-8'),
+        cert: httpsCert,
+        key: httpsKey,
     },
     app
 );
