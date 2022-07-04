@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import crypto from 'crypto';
-import { ErrorRequestHandler, NextFunction, Response, Router } from 'express';
+import { Response, Router } from 'express';
 import { expressjwt, Request as JWTRequest } from 'express-jwt';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
@@ -42,13 +42,7 @@ function sendError(res: Response, status: number, message?: string) {
 const expressJWT = expressjwt({ secret: secret, algorithms: ['HS256'] });
 
 const router = Router();
-router.use((err: ErrorRequestHandler, req: JWTRequest, res: Response, next: NextFunction) => {
-    if (err.name === 'UnauthorizedError') {
-        return sendError(res, 401, 'Invalid token');
-    } else {
-        next(err);
-    }
-});
+// login endpoint
 router.post('/login', async (req, res) => {
     if (!req.body.username) {
         sendError(res, 400, 'Username not provided');

@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import bodyParser from 'body-parser';
-import express from 'express';
+import express, { ErrorRequestHandler, NextFunction, Response } from 'express';
+import { Request as JWTRequest } from 'express-jwt';
 import fs from 'fs';
 import http from 'http';
 import https from 'https';
@@ -30,6 +31,20 @@ app.use((req, res, next) => {
         return res.redirect(`https://${req.headers.host}${req.url}`);
     }
     next();
+});
+app.use((err: ErrorRequestHandler, req: JWTRequest, res: Response, next: NextFunction) => {
+    console.log(err);
+    if (err.name === 'UnauthorizedError') {
+        res.status(401);
+        res.json({
+            timestamp: new Date().toISOString(),
+            status: 401,
+            error: 'Unauthorized',
+            message: 'Invalid token',
+        });
+    } else {
+        next(err);
+    }
 });
 
 // HTTP(S) configuration
