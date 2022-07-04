@@ -4,7 +4,7 @@ import { ErrorRequestHandler, NextFunction, Response, Router } from 'express';
 import { expressjwt, Request as JWTRequest } from 'express-jwt';
 import fs from 'fs';
 import jwt from 'jsonwebtoken';
-import logging from './logging';
+import logger from './logger';
 import { FieldPacket, RowDataPacket } from 'mysql2';
 import db from './db';
 
@@ -81,7 +81,7 @@ router.post('/login', async (req, res) => {
             sendError(res, 400, 'Invalid username or password');
         } catch (e) {
             sendError(res, 500);
-            logging.error(e);
+            logger.error(e);
         }
     }
 });
@@ -118,7 +118,7 @@ router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) =>
             return sendSuccess(res);
         } catch (e) {
             sendError(res, 500);
-            logging.error(e);
+            logger.error(e);
         }
     }
 });
@@ -159,7 +159,7 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
             return sendSuccess(res);
         } catch (e) {
             sendError(res, 500);
-            logging.error(e);
+            logger.error(e);
         }
     }
 });
@@ -182,7 +182,7 @@ router.post('/deleteUser', expressJWT, async (req: JWTRequest, res: Response) =>
             return sendSuccess(res);
         } catch (e) {
             sendError(res, 500);
-            logging.error(e);
+            logger.error(e);
         }
     }
 });

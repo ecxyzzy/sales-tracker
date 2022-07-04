@@ -5,7 +5,7 @@ import fs from 'fs';
 import http from 'http';
 import https from 'https';
 import pinoHttp from 'pino-http';
-import logging from './logging';
+import logger from './logger';
 import router from './router';
 
 // check HTTPS configuration
@@ -19,7 +19,7 @@ app.enable('trust proxy');
 app.use(bodyParser.json());
 app.use(
     pinoHttp({
-        logger: logging,
+        logger: logger,
         useLevel: 'debug',
         autoLogging: true,
     })
@@ -42,8 +42,8 @@ const httpsServer = https.createServer(
     app
 );
 httpServer.listen(process.env.HTTP_PORT, () => {
-    logging.info(`sales-tracker-backend HTTP server listening on port ${process.env.HTTP_PORT}`);
+    logger.info(`sales-tracker-backend HTTP server listening on port ${process.env.HTTP_PORT}`);
 });
 httpsServer.listen(process.env.HTTPS_PORT, () => {
-    logging.info(`sales-tracker-backend HTTPS server listening on port ${process.env.HTTPS_PORT}`);
+    logger.info(`sales-tracker-backend HTTPS server listening on port ${process.env.HTTPS_PORT}`);
 });
