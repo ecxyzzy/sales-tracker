@@ -68,13 +68,6 @@ router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) =>
         sendError(res, 400, 'Password not provided');
     } else {
         try {
-            const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-                'SELECT 1 FROM users WHERE username = ? LIMIT 1;',
-                [req.body.username]
-            );
-            if (rows.length) {
-                return sendError(res, 400, 'User with that username already exists');
-            }
             const hashedPassword = await bcrypt.hash(
                 Buffer.from(
                     crypto.createHmac('sha256', secret).update(req.body.password).digest('hex'),
@@ -91,6 +84,9 @@ router.post('/createUser', expressJWT, async (req: JWTRequest, res: Response) =>
             logger.info(`User with UID ${req.auth?.uid} created new user with username ${req.body.username}`);
             return sendSuccess(res);
         } catch (e) {
+            if (e.code === 'ER_DUP_ENTRY') {
+                return sendError(res, 400, 'User with that username already exists');
+            }
             sendError(res, 500);
             logger.error(e);
         }
@@ -118,7 +114,7 @@ router.post('/updateUser', expressJWT, async (req: JWTRequest, res: Response) =>
     } else {
         try {
             const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-                'SELECT * FROM users WHERE uid = ? LIMIT 1;',
+                'SELECT 1 FROM users WHERE uid = ? LIMIT 1;',
                 [req.body.uid]
             );
             if (!rows.length) {
