@@ -19,7 +19,7 @@ const allFields: Array<string> = [...requiredFields, 'handler2', 'handler3', 're
 
 const router = Router();
 router.use(expressjwt({ secret: authKey, algorithms: ['HS256'] }));
-router.post('/createTransaction', async (req: JWTRequest, res: Response) => {
+router.post('/create', async (req: JWTRequest, res: Response) => {
     if (!(req.auth?.isAdmin || req.auth?.isHandler)) {
         logger.info(
             `User with UID ${req.auth?.uid} attempted to POST /createTransaction without sufficient permissions`
@@ -60,7 +60,7 @@ router.post('/createTransaction', async (req: JWTRequest, res: Response) => {
         }
     }
 });
-router.get('/getTransactions', async (req: JWTRequest, res: Response) => {
+router.get('/get', async (req: JWTRequest, res: Response) => {
     try {
         const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query('SELECT * from transactions;');
         logger.info(`User with UID ${req.auth?.uid} requested info on all transactions`);
@@ -70,7 +70,7 @@ router.get('/getTransactions', async (req: JWTRequest, res: Response) => {
         logger.error(e);
     }
 });
-router.post('/updateTransaction', async (req: JWTRequest, res: Response) => {
+router.post('/update', async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /updateUser without sufficient permissions`);
         return sendError(res, 403, 'Insufficient permissions');
@@ -99,7 +99,7 @@ router.post('/updateTransaction', async (req: JWTRequest, res: Response) => {
         }
     }
 });
-router.post('/deleteTransaction', async (req: JWTRequest, res: Response) => {
+router.post('/delete', async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /deleteUser without sufficient permissions`);
         return sendError(res, 401, 'Insufficient permissions');

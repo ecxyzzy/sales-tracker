@@ -8,10 +8,10 @@ import users from './routes/users';
 // router configuration
 const router = Router();
 
-router.use(login);
-router.use(products);
-router.use(transactions);
-router.use(users);
+router.use('/login', login);
+router.use('/products', products);
+router.use('/transactions', transactions);
+router.use('/users', users);
 router.use((req, res) => {
     sendError(res, 404);
 });

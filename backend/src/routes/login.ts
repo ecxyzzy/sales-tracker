@@ -8,7 +8,7 @@ import logger from '../logger';
 import { authKey } from '../secrets';
 
 const router = Router();
-router.post('/login', async (req, res) => {
+router.post('/', async (req, res) => {
     if (!req.body.username) {
         sendError(res, 400, 'Username not provided');
     } else if (!req.body.password) {
