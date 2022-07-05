@@ -30,7 +30,7 @@ app.use((req, res, next) => {
 app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
     if (err.name === 'UnauthorizedError') {
         logger.info(`Unauthorized access attempt with token ${req.headers['authorization']} from ${req.ip}`);
-        return sendError(res, 401, 'Invalid token');
+        return sendError(res, 403, 'Invalid token');
     }
     next(err);
 });

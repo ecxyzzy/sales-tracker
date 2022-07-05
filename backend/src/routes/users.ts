@@ -31,7 +31,7 @@ router.post('/createUser', async (req: JWTRequest, res: Response) => {
             return sendSuccess(res);
         } catch (e) {
             if (e.code === 'ER_DUP_ENTRY') {
-                return sendError(res, 404, 'User with that username already exists');
+                return sendError(res, 409, 'User with that username already exists');
             }
             sendError(res, 500);
             logger.error(e);

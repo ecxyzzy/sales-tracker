@@ -22,7 +22,7 @@ router.post('/createProduct', async (req: JWTRequest, res: Response) => {
             return sendSuccess(res);
         } catch (e) {
             if (e.code === 'ER_DUP_ENTRY') {
-                return sendError(res, 404, 'Product with that name already exists');
+                return sendError(res, 409, 'Product with that name already exists');
             }
             sendError(res, 500);
             logger.error(e);
