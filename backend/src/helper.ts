@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import { Response } from 'express';
 
 // mapping of HTTP/1.1 status codes to phrases
-const httpCodes: Record<number, string> = {
+export const httpCodes: Record<number, string> = {
     400: 'Bad Request',
     401: 'Unauthorized',
     403: 'Forbidden',
