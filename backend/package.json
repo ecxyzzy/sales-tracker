@@ -44,6 +44,7 @@
     "start": "npx nodemon src/server.ts",
     "lint": "eslint src/**/* --fix",
     "test": "cross-env NODE_ENV=testing TS_NODE_FILES=true mocha",
-    "test-verbose": "cross-env NODE_ENV=development TS_NODE_FILES=true mocha"
+    "test-verbose": "cross-env NODE_ENV=development TS_NODE_FILES=true mocha",
+    "coverage": "nyc npm test"
   }
 }
