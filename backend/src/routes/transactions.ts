@@ -24,7 +24,7 @@ router.post('/createTransaction', async (req: JWTRequest, res: Response) => {
         logger.info(
             `User with UID ${req.auth?.uid} attempted to POST /createTransaction without sufficient permissions`
         );
-        return sendError(res, 401, 'Insufficient permissions');
+        return sendError(res, 403, 'Insufficient permissions');
     }
     if (
         !requiredFields.every((x) =>
@@ -73,7 +73,7 @@ router.get('/getTransactions', async (req: JWTRequest, res: Response) => {
 router.post('/updateTransaction', async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /updateUser without sufficient permissions`);
-        return sendError(res, 401, 'Insufficient permissions');
+        return sendError(res, 403, 'Insufficient permissions');
     }
     if (!req.body.tid) {
         sendError(res, 400, 'Transaction ID not provided');
@@ -84,7 +84,7 @@ router.post('/updateTransaction', async (req: JWTRequest, res: Response) => {
                 [req.body.tid]
             );
             if (!rows.length) {
-                return sendError(res, 400, 'Transaction does not exist');
+                return sendError(res, 404, 'Transaction does not exist');
             }
             await db.query(
                 'UPDATE transactions SET transactionDate = ?, product = ?, transactionCount = ?, price = ?, actualTotal = ?, handler1 = ?, handler2 = ?, handler3 = ?, remarks = ? WHERE tid = ?',
@@ -113,7 +113,7 @@ router.post('/deleteTransaction', async (req: JWTRequest, res: Response) => {
                 [req.body.tid]
             );
             if (!rows.length) {
-                return sendError(res, 400, 'Transaction does not exist');
+                return sendError(res, 404, 'Transaction does not exist');
             }
             await db.query('DELETE FROM transactions WHERE tid = ?', [req.body.tid]);
             logger.info(`User with UID ${req.auth?.uid} deleted transaction with TID ${req.body.tid}`);

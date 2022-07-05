@@ -12,7 +12,7 @@ router.use(expressjwt({ secret: authKey, algorithms: ['HS256'] }));
 router.post('/createUser', async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /createUser without sufficient permissions`);
-        return sendError(res, 401, 'Insufficient permissions');
+        return sendError(res, 403, 'Insufficient permissions');
     }
     if (!req.body.username) {
         sendError(res, 400, 'Username not provided');
@@ -31,7 +31,7 @@ router.post('/createUser', async (req: JWTRequest, res: Response) => {
             return sendSuccess(res);
         } catch (e) {
             if (e.code === 'ER_DUP_ENTRY') {
-                return sendError(res, 400, 'User with that username already exists');
+                return sendError(res, 404, 'User with that username already exists');
             }
             sendError(res, 500);
             logger.error(e);
@@ -53,7 +53,7 @@ router.get('/getUsers', async (req: JWTRequest, res: Response) => {
 router.post('/updateUser', async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /updateUser without sufficient permissions`);
-        return sendError(res, 401, 'Insufficient permissions');
+        return sendError(res, 403, 'Insufficient permissions');
     }
     if (!req.body.uid) {
         sendError(res, 400, 'User ID not provided');
@@ -64,7 +64,7 @@ router.post('/updateUser', async (req: JWTRequest, res: Response) => {
                 [req.body.uid]
             );
             if (!rows.length) {
-                return sendError(res, 400, 'User does not exist');
+                return sendError(res, 404, 'User does not exist');
             }
             if (req.body.username) {
                 await db.query('UPDATE users SET username = ? WHERE uid = ?;', [req.body.username, req.body.uid]);
@@ -106,7 +106,7 @@ router.post('/updateUser', async (req: JWTRequest, res: Response) => {
 router.post('/deleteUser', async (req: JWTRequest, res: Response) => {
     if (!req.auth?.isAdmin) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /deleteUser without sufficient permissions`);
-        return sendError(res, 401, 'Insufficient permissions');
+        return sendError(res, 403, 'Insufficient permissions');
     }
     if (!req.body.uid) {
         sendError(res, 400, 'User ID not provided');
@@ -117,7 +117,7 @@ router.post('/deleteUser', async (req: JWTRequest, res: Response) => {
                 [req.body.uid]
             );
             if (!rows.length) {
-                return sendError(res, 400, 'User does not exist');
+                return sendError(res, 404, 'User does not exist');
             }
             await db.query('DELETE FROM users WHERE uid = ?', [req.body.uid]);
             logger.info(`User with UID ${req.auth?.uid} deleted user ${rows[0].username} with UID ${req.body.uid}`);

@@ -11,7 +11,7 @@ router.use(expressjwt({ secret: authKey, algorithms: ['HS256'] }));
 router.post('/createProduct', async (req: JWTRequest, res: Response) => {
     if (!(req.auth?.isAdmin || req.auth?.isHandler)) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /createProduct without sufficient permissions`);
-        return sendError(res, 401, 'Insufficient permissions');
+        return sendError(res, 403, 'Insufficient permissions');
     }
     if (!req.body.productName) {
         sendError(res, 400, 'Product name not provided');
@@ -22,7 +22,7 @@ router.post('/createProduct', async (req: JWTRequest, res: Response) => {
             return sendSuccess(res);
         } catch (e) {
             if (e.code === 'ER_DUP_ENTRY') {
-                return sendError(res, 400, 'Product with that name already exists');
+                return sendError(res, 404, 'Product with that name already exists');
             }
             sendError(res, 500);
             logger.error(e);
@@ -42,7 +42,7 @@ router.get('/getProducts', async (req: JWTRequest, res: Response) => {
 router.post('/updateProduct', async (req: JWTRequest, res: Response) => {
     if (!(req.auth?.isAdmin || req.auth?.isHandler)) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /updateProduct without sufficient permissions`);
-        return sendError(res, 401, 'Insufficient permissions');
+        return sendError(res, 403, 'Insufficient permissions');
     }
     if (!req.body.pid) {
         sendError(res, 400, 'Product ID not provided');
@@ -53,7 +53,7 @@ router.post('/updateProduct', async (req: JWTRequest, res: Response) => {
                 [req.body.uid]
             );
             if (!rows.length) {
-                return sendError(res, 400, 'Product does not exist');
+                return sendError(res, 404, 'Product does not exist');
             }
             if (req.body.productName) {
                 await db.query('UPDATE products SET p_name = ? WHERE pid = ?;', [req.body.productName, req.body.pid]);
@@ -71,7 +71,7 @@ router.post('/updateProduct', async (req: JWTRequest, res: Response) => {
 router.post('/deleteProduct', async (req: JWTRequest, res: Response) => {
     if (!(req.auth?.isAdmin || req.auth?.isHandler)) {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /deleteProduct without sufficient permissions`);
-        return sendError(res, 401, 'Insufficient permissions');
+        return sendError(res, 403, 'Insufficient permissions');
     }
     if (!req.body.pid) {
         sendError(res, 400, 'Product ID not provided');
@@ -82,7 +82,7 @@ router.post('/deleteProduct', async (req: JWTRequest, res: Response) => {
                 [req.body.pid]
             );
             if (!rows.length) {
-                return sendError(res, 400, 'Product does not exist');
+                return sendError(res, 404, 'Product does not exist');
             }
             await db.query('DELETE FROM users WHERE uid = ?', [req.body.uid]);
             logger.info(`User with UID ${req.auth?.uid} deleted product ${rows[0].p_name} with PID ${req.body.uid}`);

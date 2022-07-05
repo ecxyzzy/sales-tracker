@@ -35,7 +35,7 @@ router.post('/login', async (req, res) => {
                     });
                 }
             }
-            sendError(res, 400, 'Invalid username or password');
+            sendError(res, 401, 'Invalid username or password');
             logger.info(`Login attempt (${req.body.username} / ${req.body.password}) from ${req.ip} failed`);
         } catch (e) {
             sendError(res, 500);
