@@ -50,3 +50,5 @@ httpServer.listen(process.env.HTTP_PORT, () => {
 httpsServer.listen(process.env.HTTPS_PORT, () => {
     logger.info(`sales-tracker-backend HTTPS server listening on port ${process.env.HTTPS_PORT}`);
 });
+
+export default app;
