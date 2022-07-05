@@ -22,7 +22,7 @@ app.use(
 );
 app.use(router);
 app.use((req, res, next) => {
-    if (!(process.env.NODE_ENV === 'development' || req.secure)) {
+    if (process.env.NODE_ENV === 'production' && !req.secure) {
         return res.redirect(`https://${req.headers.host}${req.url}`);
     }
     next();
