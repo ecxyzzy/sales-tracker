@@ -2,19 +2,48 @@ import 'dotenv/config';
 import pino from 'pino';
 
 const devSettings = {
-    level: 'debug', transport: {
-        target: 'pino-pretty', options: {
-            colorize: true, translateTime: 'SYS:standard'
-        }
-    }
+    level: 'debug',
+    transport: {
+        target: 'pino-pretty',
+        options: {
+            colorize: true,
+            translateTime: 'SYS:standard',
+        },
+    },
+};
+
+const testSettings = {
+    level: 'fatal',
+    transport: {
+        target: 'pino/file',
+        options: {
+            destination: '/dev/null',
+        },
+    },
 };
 
 const prodSettings = {
-    level: 'info', transport: {
-        target: 'pino/file', options: {
-            destination: process.env.LOG_PATH_PROD, mkdir: true
-        }
-    }
+    level: 'info',
+    transport: {
+        target: 'pino/file',
+        options: {
+            destination: process.env.LOG_PATH_PROD,
+            mkdir: true,
+        },
+    },
 };
 
-export default pino(process.env.NODE_ENV === 'development' ? devSettings : prodSettings);
+let p: pino.Logger;
+switch (process.env.NODE_ENV) {
+    case 'development':
+        p = pino(devSettings);
+        break;
+    case 'testing':
+        p = pino(testSettings);
+        break;
+    case 'production':
+        p = pino(prodSettings);
+        break;
+}
+
+export default p;
