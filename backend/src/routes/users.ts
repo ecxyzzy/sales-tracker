@@ -80,7 +80,7 @@ router.post('/update', async (req: JWTRequest, res: Response) => {
                     `User with UID ${req.auth?.uid} changed password for user ${req.body.username} with UID ${req.body.uid}`
                 );
             }
-            if (req.body.isAdmin != rows[0].isAdmin) {
+            if (!(req.body.isAdmin === null || req.body.isAdmin === undefined) && req.body.isAdmin != rows[0].isAdmin) {
                 await db.query('UPDATE users SET isAdmin = ? WHERE uid = ?;', [req.body.isAdmin, req.body.uid]);
                 logger.info(
                     `User with UID ${req.auth?.uid} ${
@@ -88,7 +88,10 @@ router.post('/update', async (req: JWTRequest, res: Response) => {
                     } administrator privileges for user ${req.body.username} with UID ${req.body.uid}`
                 );
             }
-            if (req.body.isHandler != rows[0].isHandler) {
+            if (
+                !(req.body.isHandler === null || req.body.isHandler === undefined) &&
+                req.body.isHandler != rows[0].isHandler
+            ) {
                 await db.query('UPDATE users SET isHandler = ? WHERE uid = ?;', [req.body.isHandler, req.body.uid]);
                 logger.info(
                     `User with UID ${req.auth?.uid} ${
