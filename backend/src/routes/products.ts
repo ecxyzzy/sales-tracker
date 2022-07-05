@@ -49,8 +49,8 @@ router.post('/update', async (req: JWTRequest, res: Response) => {
     } else {
         try {
             const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
-                'SELECT * FROM users WHERE uid = ? LIMIT 1;',
-                [req.body.uid]
+                'SELECT * FROM products WHERE pid = ? LIMIT 1;',
+                [req.body.pid]
             );
             if (!rows.length) {
                 return sendError(res, 404, 'Product does not exist');
@@ -87,9 +87,9 @@ router.post('/delete', async (req: JWTRequest, res: Response) => {
             if (!rows.length) {
                 return sendError(res, 404, 'Product does not exist');
             }
-            await db.query('DELETE FROM users WHERE uid = ?', [req.body.uid]);
+            await db.query('DELETE FROM products WHERE pid = ?', [req.body.pid]);
             logger.info(
-                `User with UID ${req.auth?.uid} deleted product ${rows[0].productName} with PID ${req.body.uid}`
+                `User with UID ${req.auth?.uid} deleted product ${rows[0].productName} with PID ${req.body.pid}`
             );
             return sendSuccess(res);
         } catch (e) {

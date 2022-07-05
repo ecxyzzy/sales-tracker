@@ -104,7 +104,7 @@ router.post('/delete', async (req: JWTRequest, res: Response) => {
         logger.info(`User with UID ${req.auth?.uid} attempted to POST /deleteUser without sufficient permissions`);
         return sendError(res, 401, 'Insufficient permissions');
     }
-    if (!req.body.uid) {
+    if (!req.body.tid) {
         sendError(res, 400, 'Transaction ID not provided');
     } else {
         try {
