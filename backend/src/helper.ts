@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { Response } from 'express';
 
 // mapping of HTTP/1.1 status codes to phrases
@@ -27,4 +28,9 @@ export function sendError(res: Response, status: number, message?: string) {
         error: httpCodes[status],
         message: message,
     });
+}
+
+// helper function for pre-hashing a password
+export async function preHashPassword(secret: string, password: string) {
+    return Buffer.from(crypto.createHmac('sha256', secret).update(password).digest('hex'), 'hex').toString('base64');
 }

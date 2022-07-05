@@ -1,10 +1,9 @@
+import bcrypt from 'bcrypt';
 import { Response, Router } from 'express';
 import { expressjwt, Request as JWTRequest } from 'express-jwt';
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { FieldPacket, RowDataPacket } from 'mysql2';
 import db from '../db';
-import { sendError, sendSuccess } from '../helper';
+import { preHashPassword, sendError, sendSuccess } from '../helper';
 import logger from '../logger';
 import { authKey } from '../secrets';
 
@@ -21,13 +20,7 @@ router.post('/createUser', async (req: JWTRequest, res: Response) => {
         sendError(res, 400, 'Password not provided');
     } else {
         try {
-            const hashedPassword = await bcrypt.hash(
-                Buffer.from(
-                    crypto.createHmac('sha256', authKey).update(req.body.password).digest('hex'),
-                    'hex'
-                ).toString('base64'),
-                10
-            );
+            const hashedPassword = await bcrypt.hash(await preHashPassword(authKey, req.body.password), 10);
             await db.query('INSERT INTO users VALUES (DEFAULT, ?, ?, ?, ?);', [
                 req.body.username,
                 hashedPassword,
@@ -81,13 +74,7 @@ router.post('/updateUser', async (req: JWTRequest, res: Response) => {
                 req.body.username = rows[0].username;
             }
             if (req.body.password) {
-                const hashedPassword = await bcrypt.hash(
-                    Buffer.from(
-                        crypto.createHmac('sha256', authKey).update(req.body.password).digest('hex'),
-                        'hex'
-                    ).toString('base64'),
-                    10
-                );
+                const hashedPassword = await bcrypt.hash(await preHashPassword(authKey, req.body.password), 10);
                 await db.query('UPDATE users SET hashedPassword = ? WHERE uid = ?;', [hashedPassword, req.body.uid]);
                 logger.info(
                     `User with UID ${req.auth?.uid} changed password for user ${req.body.username} with UID ${req.body.uid}`

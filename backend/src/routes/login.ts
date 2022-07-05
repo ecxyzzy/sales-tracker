@@ -1,10 +1,9 @@
 import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { FieldPacket, RowDataPacket } from 'mysql2';
 import db from '../db';
-import { sendError, sendSuccess } from '../helper';
+import { preHashPassword, sendError, sendSuccess } from '../helper';
 import logger from '../logger';
 import { authKey } from '../secrets';
 
@@ -22,10 +21,7 @@ router.post('/login', async (req, res) => {
             );
             if (rows.length) {
                 const result = await bcrypt.compare(
-                    Buffer.from(
-                        crypto.createHmac('sha256', authKey).update(req.body.password).digest('hex'),
-                        'hex'
-                    ).toString('base64'),
+                    await preHashPassword(authKey, req.body.password),
                     rows[0].hashedPassword
                 );
                 if (result) {
