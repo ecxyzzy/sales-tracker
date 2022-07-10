@@ -28,7 +28,12 @@ router.post('/', async (req, res) => {
                     logger.info(`User with UID ${rows[0].uid} logged in successfully`);
                     return sendSuccess(res, {
                         token: jwt.sign(
-                            { uid: rows[0].uid, isAdmin: rows[0].isAdmin, isHandler: rows[0].isHandler },
+                            {
+                                uid: rows[0].uid,
+                                username: rows[0].username,
+                                isAdmin: rows[0].isAdmin,
+                                isHandler: rows[0].isHandler,
+                            },
                             authKey,
                             { algorithm: 'HS256', expiresIn: '1h' }
                         ),
