@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
+import SalesTable from './SalesTable';
 
 export default function App() {
     const token = localStorage.getItem('token');
@@ -20,5 +21,10 @@ export default function App() {
     if (locationState) {
         locationState.status = '';
     }
-    return <h1>Application</h1>;
+    return (
+        <>
+            {/* TODO implement Navbar */}
+            <SalesTable token={token} />
+        </>
+    )
 }

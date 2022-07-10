@@ -1,4 +1,4 @@
-interface Product {
+export interface Product {
     readonly pid: number;
     readonly productName: string;
 }
@@ -21,7 +21,14 @@ interface Transaction {
     readonly remarks?: string;
 }
 
-interface User {
+export interface SanitizedTransaction extends Omit<Transaction, 'product' | 'handler1' | 'handler2' | 'handler3'> {
+    readonly product: string;
+    readonly handler1: string;
+    readonly handler2?: string;
+    readonly handler3?: string;
+}
+
+export interface User {
     readonly uid: number;
     readonly username: string;
     readonly isAdmin: 0 | 1;
@@ -43,15 +50,15 @@ export interface LoginResponse extends BackendResponse {
     readonly payload: Token;
 }
 
-interface ProductsGetResponse extends BackendResponse {
+export interface ProductsGetResponse extends BackendResponse {
     readonly payload: Array<Product>;
 }
 
-interface TransactionsGetResponse extends BackendResponse {
+export interface TransactionsGetResponse extends BackendResponse {
     readonly payload: Array<Transaction>;
 }
 
-interface UsersGetResponse extends BackendResponse {
+export interface UsersGetResponse extends BackendResponse {
     readonly payload: Array<User>;
 }
 
