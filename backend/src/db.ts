@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import mysql2 from 'mysql2';
 
 const connection = mysql2.createConnection({
