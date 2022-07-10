@@ -13,6 +13,7 @@ import { httpsCert, httpsKey } from './secrets';
 const app = express();
 app.enable('trust proxy');
 app.use(bodyParser.json());
+app.use(router);
 app.use(
     pinoHttp({
         logger: logger,
@@ -20,7 +21,6 @@ app.use(
         autoLogging: true,
     })
 );
-app.use(router);
 app.use((req, res, next) => {
     if (process.env.NODE_ENV === 'production' && !req.secure) {
         return res.redirect(`https://${req.headers.host}${req.url}`);
