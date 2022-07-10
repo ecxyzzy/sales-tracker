@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { ErrorResponse, isErrorResponse, LoginResponse } from '../types';
 import { useSnackbar } from 'notistack';
 
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const locationState = useLocation()?.state as Record<string, string>;
     const navigate = useNavigate();
     const { enqueueSnackbar } = useSnackbar();
+    const token = localStorage.getItem('token');
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -35,10 +37,21 @@ export default function Login() {
         }).then((res) => res.json());
     };
 
-    const token = localStorage.getItem('token');
     if (token) {
         return <Navigate to="/" state={{ status: 'alreadyLoggedIn' }} />;
     }
+    switch (locationState?.status) {
+        case 'loggedOut':
+            enqueueSnackbar('Logged out successfully!', { variant: 'success' });
+            break;
+        case 'notLoggedIn':
+            enqueueSnackbar('You must log in to access this application.', { variant: 'error' });
+            break;
+    }
+    if (locationState) {
+        locationState.status = '';
+    }
+
     return (
         <div className="loginWrapper">
             <h1>Log in</h1>

@@ -7,7 +7,7 @@ export default function App() {
     const locationState = useLocation()?.state as Record<string, string>;
     const { enqueueSnackbar } = useSnackbar();
     if (!token) {
-        return <Navigate to="/login" />;
+        return <Navigate to="/login" state={{ status: 'notLoggedIn' }} />;
     }
     switch (locationState?.status) {
         case 'success':
