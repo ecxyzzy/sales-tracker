@@ -1,12 +1,16 @@
 import { Box } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
+    BackendResponse,
     ErrorResponse,
     isErrorResponse,
+    Product,
     ProductsGetResponse,
     SanitizedTransaction,
     TransactionsGetResponse,
+    User,
     UsersGetResponse,
 } from '../types';
 
@@ -55,53 +59,41 @@ const columns: GridColDef[] = [
     },
 ];
 
+async function fetchData<T extends BackendResponse>(
+    endpoint: 'transactions' | 'products' | 'users',
+    token: string | null
+): Promise<T | ErrorResponse> {
+    return (
+        await fetch(`${process.env.REACT_APP_BACKEND_URL}/${endpoint}/get`, {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        })
+    ).json();
+}
+
 export default function SalesTable(props: { token: string | null }) {
     const [rows, setRows] = useState<SanitizedTransaction[]>([]);
     const [error, setError] = useState<boolean | null>(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
     useEffect(() => {
-        async function fetchData() {
-            const tRes = (await (
-                await fetch(`${process.env.REACT_APP_BACKEND_URL}/transactions/get`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${props.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                })
-            ).json()) as ErrorResponse | TransactionsGetResponse;
-            if (isErrorResponse(tRes)) {
-                console.error(`Error: Failed to retrieve transactions (${tRes.status} ${tRes.error}: ${tRes.message})`);
-                setError(true);
-                return;
-            }
-            const pRes = (await (
-                await fetch(`${process.env.REACT_APP_BACKEND_URL}/products/get`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${props.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                })
-            ).json()) as ErrorResponse | ProductsGetResponse;
-            if (isErrorResponse(pRes)) {
-                console.error(`Error: Failed to retrieve products (${pRes.status} ${pRes.error}: ${pRes.message})`);
-                setError(true);
-                return;
-            }
-            const uRes = (await (
-                await fetch(`${process.env.REACT_APP_BACKEND_URL}/users/get`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${props.token}`,
-                        'Content-Type': 'application/json',
-                    },
-                })
-            ).json()) as ErrorResponse | UsersGetResponse;
-            if (isErrorResponse(uRes)) {
-                console.error(`Error: Failed to retrieve users (${uRes.status} ${uRes.error}: ${uRes.message})`);
-                setError(true);
-                return;
+        (async () => {
+            const tRes = await fetchData<TransactionsGetResponse>('transactions', props.token);
+            const pRes = await fetchData<ProductsGetResponse>('products', props.token);
+            const uRes = await fetchData<UsersGetResponse>('users', props.token);
+            for (const res of [tRes, pRes, uRes]) {
+                if (isErrorResponse(res)) {
+                    if (res.status === 403) {
+                        localStorage.removeItem('token');
+                        navigate('/login', { state: { status: 'sessionExpired' } });
+                        return;
+                    }
+                    setError(true);
+                    return;
+                }
             }
             setRows([]);
             for (const transaction of tRes.payload) {
@@ -109,20 +101,21 @@ export default function SalesTable(props: { token: string | null }) {
                     ...prevState,
                     {
                         ...transaction,
-                        product: pRes.payload.filter((x) => x.pid === transaction.product)[0].productName,
-                        handler1: uRes.payload.filter((x) => x.uid === transaction.handler1)[0].username,
-                        handler2: uRes.payload.filter((x) => x.uid === transaction?.handler2)[0]?.username,
-                        handler3: uRes.payload.filter((x) => x.uid === transaction?.handler3)[0]?.username,
+                        product: pRes.payload.filter((x: Product) => x.pid === transaction.product)[0].productName,
+                        handler1: uRes.payload.filter((x: User) => x.uid === transaction.handler1)[0].username,
+                        handler2: uRes.payload.filter((x: User) => x.uid === transaction?.handler2)[0]?.username,
+                        handler3: uRes.payload.filter((x: User) => x.uid === transaction?.handler3)[0]?.username,
                     },
                 ]);
             }
             setLoading(false);
-        }
-        fetchData().catch((e) => {
+        })().catch((e) => {
             console.error(e);
             setError(true);
         });
-    }, [props.token]);
+        // we only want this useEffect to run once on render, it should have no dependencies other than that
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     return (
         <Box sx={{ height: 400, width: '100%' }}>
             <DataGrid columns={columns} rows={rows} getRowId={(r) => r.tid} error={error} loading={loading} />

@@ -35,7 +35,7 @@ export interface User {
     readonly isHandler: 0 | 1;
 }
 
-interface BackendResponse {
+export interface BackendResponse {
     readonly timestamp: string;
     readonly status: number;
     [propName: string]: any;

@@ -47,6 +47,8 @@ export default function Login() {
         case 'notLoggedIn':
             enqueueSnackbar('You must log in to access this application.', { variant: 'error' });
             break;
+        case 'sessionExpired':
+            enqueueSnackbar('Your session has expired. Please log in again.', { variant: 'info' });
     }
     if (locationState) {
         locationState.status = '';
