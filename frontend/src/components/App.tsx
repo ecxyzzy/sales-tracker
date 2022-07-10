@@ -1,14 +1,17 @@
-import useToken from '../hooks/useToken';
-import Login from './Login';
+import { CssBaseline, ThemeProvider } from '@mui/material';
+import appTheme from '../themes/appTheme';
+import React from 'react';
+import { Navigate } from 'react-router-dom';
 
 export default function App() {
-    const { token, setToken } = useToken();
+    const token = localStorage.getItem('token');
     if (!token) {
-        return <Login setToken={setToken} />;
+        return <Navigate to="/login" />;
     }
     return (
-        <>
+        <ThemeProvider theme={appTheme}>
+            <CssBaseline enableColorScheme />
             <h1>Application</h1>
-        </>
+        </ThemeProvider>
     );
 }
