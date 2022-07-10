@@ -1,28 +1,24 @@
-import { Alert, CssBaseline, Snackbar, ThemeProvider } from '@mui/material';
 import React, { useState } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { ErrorResponse, isErrorResponse, LoginResponse } from '../types';
-import appTheme from '../themes/appTheme';
-import { Navigate } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [loginError, setLoginError] = useState('');
-
-    const handleClose = () => {
-        setLoginError('');
-    };
+    const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         const res = await loginUser(username, password);
         if (isErrorResponse(res)) {
-            setLoginError(res.message);
             setUsername('');
             setPassword('');
+            enqueueSnackbar(`Failed to log in: ${res.message}`, { variant: 'error' });
         } else {
             localStorage.setItem('token', res.payload.token);
-            window.location.replace('/');
+            navigate('/', { replace: true, state: { status: 'success' } });
         }
     };
 
@@ -41,32 +37,24 @@ export default function Login() {
 
     const token = localStorage.getItem('token');
     if (token) {
-        return <Navigate to="/" />;
+        return <Navigate to="/" state={{ status: 'alreadyLoggedIn' }} />;
     }
     return (
-        <ThemeProvider theme={appTheme}>
-            <CssBaseline enableColorScheme />
-            <div className="loginWrapper">
-                <h1>Log in</h1>
-                <form onSubmit={handleSubmit}>
-                    <label>
-                        <p>Username</p>
-                        <input type="text" onChange={(e) => setUsername(e.target.value)} />
-                    </label>
-                    <label>
-                        <p>Password</p>
-                        <input type="password" onChange={(e) => setPassword(e.target.value)} />
-                    </label>
-                    <div>
-                        <button type="submit">Submit</button>
-                    </div>
-                </form>
-            </div>
-            <Snackbar open={Boolean(loginError)} autoHideDuration={6000} onClose={handleClose}>
-                <Alert onClose={handleClose} severity="error" sx={{ width: '100%' }}>
-                    Failed to login: {loginError}
-                </Alert>
-            </Snackbar>
-        </ThemeProvider>
+        <div className="loginWrapper">
+            <h1>Log in</h1>
+            <form onSubmit={handleSubmit}>
+                <label>
+                    <p>Username</p>
+                    <input type="text" onChange={(e) => setUsername(e.target.value)} />
+                </label>
+                <label>
+                    <p>Password</p>
+                    <input type="password" onChange={(e) => setPassword(e.target.value)} />
+                </label>
+                <div>
+                    <button type="submit">Submit</button>
+                </div>
+            </form>
+        </div>
     );
 }
