@@ -20,6 +20,7 @@ const columns: GridColDef[] = [
         field: 'transactionDate',
         headerName: 'Date',
         valueFormatter: (params) => dateFmt.format(new Date(params.value)),
+        filterable: false,
     },
     {
         field: 'product',
@@ -61,16 +62,25 @@ const columns: GridColDef[] = [
 
 async function fetchData<T extends BackendResponse>(
     endpoint: 'transactions' | 'products' | 'users',
-    token: string | null
+    token: string | null,
+    params?: Record<string, string>
 ): Promise<T | ErrorResponse> {
     return (
-        await fetch(`${process.env.REACT_APP_BACKEND_URL}/${endpoint}/get`, {
-            method: 'GET',
-            headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-            },
-        })
+        await fetch(
+            `${process.env.REACT_APP_BACKEND_URL}/${endpoint}/get?${
+                params &&
+                Object.keys(params)
+                    .map((x) => `${x}=${params[x]}`)
+                    .join('&')
+            }`,
+            {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            }
+        )
     ).json();
 }
 
@@ -91,6 +101,7 @@ export default function SalesTable(props: { token: string | null }) {
                         navigate('/login', { state: { status: 'sessionExpired' } });
                         return;
                     }
+                    setLoading(false);
                     setError(true);
                     return;
                 }
@@ -111,6 +122,7 @@ export default function SalesTable(props: { token: string | null }) {
             setLoading(false);
         })().catch((e) => {
             console.error(e);
+            setLoading(false);
             setError(true);
         });
         // we only want this useEffect to run once on render, it should have no dependencies other than that
