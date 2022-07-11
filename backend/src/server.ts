@@ -12,6 +12,7 @@ import { httpsCert, httpsKey } from './secrets';
 // express configuration
 const app = express();
 app.enable('trust proxy');
+app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(router);
 app.use(

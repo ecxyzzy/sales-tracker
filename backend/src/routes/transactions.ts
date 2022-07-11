@@ -62,9 +62,20 @@ router.post('/create', async (req: JWTRequest, res: Response) => {
 });
 router.get('/get', async (req: JWTRequest, res: Response) => {
     try {
-        const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query('SELECT * from transactions;');
-        logger.info(`User with UID ${req.auth?.uid} requested info on all transactions`);
-        return sendSuccess(res, rows);
+        if (req.query.fromDate && req.query.toDate) {
+            const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query(
+                'SELECT * from transactions WHERE transactionDate BETWEEN ? AND ?;',
+                [req.query.fromDate, req.query.toDate]
+            );
+            logger.info(
+                `User with UID ${req.auth?.uid} requested info on transactions between ${req.query.fromDate} and ${req.query.toDate}`
+            );
+            return sendSuccess(res, rows);
+        } else {
+            const [rows]: [RowDataPacket[], FieldPacket[]] = await db.query('SELECT * from transactions;');
+            logger.info(`User with UID ${req.auth?.uid} requested info on all transactions`);
+            return sendSuccess(res, rows);
+        }
     } catch (e) {
         sendError(res, 500);
         logger.error(e);
