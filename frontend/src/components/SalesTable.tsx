@@ -1,7 +1,7 @@
 import { Box } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import {
     BackendResponse,
     ErrorResponse,
@@ -68,10 +68,7 @@ async function fetchData<T extends BackendResponse>(
     return (
         await fetch(
             `${process.env.REACT_APP_BACKEND_URL}/${endpoint}/get?${
-                params &&
-                Object.keys(params)
-                    .map((x) => `${x}=${params[x]}`)
-                    .join('&')
+                params ? new URLSearchParams(params).toString() : ''
             }`,
             {
                 method: 'GET',
@@ -88,12 +85,29 @@ export default function SalesTable(props: { token: string | null }) {
     const [rows, setRows] = useState<SanitizedTransaction[]>([]);
     const [error, setError] = useState<boolean | null>(null);
     const [loading, setLoading] = useState(true);
+    const locationState = useLocation()?.state as Record<string, string>;
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const token = props.token ?? locationState?.token ?? localStorage.getItem('token');
     useEffect(() => {
         (async () => {
-            const tRes = await fetchData<TransactionsGetResponse>('transactions', props.token);
-            const pRes = await fetchData<ProductsGetResponse>('products', props.token);
-            const uRes = await fetchData<UsersGetResponse>('users', props.token);
+            const params: Record<string, string> = {};
+            if (searchParams.has('fromDate')) {
+                // if .has() returns true, then .get() doesn't ever return null even if the field is empty
+                // @ts-ignore
+                params['fromDate'] = searchParams.get('fromDate');
+            }
+            if (searchParams.has('toDate')) {
+                // @ts-ignore
+                params['toDate'] = searchParams.get('toDate');
+            }
+            const tRes = await fetchData<TransactionsGetResponse>(
+                'transactions',
+                token,
+                params
+            );
+            const pRes = await fetchData<ProductsGetResponse>('products', token);
+            const uRes = await fetchData<UsersGetResponse>('users', token);
             for (const res of [tRes, pRes, uRes]) {
                 if (isErrorResponse(res)) {
                     if (res.status === 403) {

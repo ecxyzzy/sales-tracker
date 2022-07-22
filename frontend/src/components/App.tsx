@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
+import Navbar from './Navbar';
 import SalesTable from './SalesTable';
 
 export default function App() {
@@ -23,8 +24,8 @@ export default function App() {
     }
     return (
         <>
-            {/* TODO implement Navbar */}
+            <Navbar />
             <SalesTable token={token} />
         </>
-    )
+    );
 }
