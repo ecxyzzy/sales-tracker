@@ -15,8 +15,6 @@ export default function Login() {
         e.preventDefault();
         const res = await loginUser(username, password);
         if (isErrorResponse(res)) {
-            setUsername('');
-            setPassword('');
             enqueueSnackbar(`Failed to log in: ${res.message}`, { variant: 'error' });
         } else {
             localStorage.setItem('token', res.payload.token);

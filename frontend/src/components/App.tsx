@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
-import Navbar from './Navbar';
+import NavbarRoot from './Navbar/NavbarRoot';
 import SalesTable from './SalesTable';
 
 export default function App() {
@@ -24,7 +24,7 @@ export default function App() {
     }
     return (
         <>
-            <Navbar />
+            <NavbarRoot />
             <SalesTable token={token} />
         </>
     );
