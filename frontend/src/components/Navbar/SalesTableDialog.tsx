@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import DataThresholdingIcon from '@mui/icons-material/DataThresholding';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
-import { DatePicker } from '@mui/x-date-pickers';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import { Link } from 'react-router-dom';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 
 export default function SalesTableDialog() {
     const [open, setOpen] = useState(false);
@@ -17,7 +18,7 @@ export default function SalesTableDialog() {
         setDisabled(isNaN(fromDate?.getTime() ?? NaN) || isNaN(toDate?.getTime() ?? NaN));
     }, [fromDate, toDate]);
     return (
-        <>
+        <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Button onClick={() => setOpen(true)} color="inherit" startIcon={<DataThresholdingIcon />}>
                 Sales Table
             </Button>
@@ -26,23 +27,27 @@ export default function SalesTableDialog() {
                 <DialogContent>
                     <div>
                         <DatePicker
-                            label="From"
-                            value={fromDate}
                             onChange={(newValue) => {
                                 setFromDate(newValue);
                             }}
                             renderInput={(params: JSX.IntrinsicAttributes) => <TextField {...params} />}
+                            disableFuture={true}
+                            inputFormat="yyyy/MM/dd"
+                            label="From"
+                            value={fromDate}
                         />
                     </div>
                     <br />
                     <div>
                         <DatePicker
-                            label="To"
-                            value={toDate}
                             onChange={(newValue) => {
                                 setToDate(newValue);
                             }}
                             renderInput={(params: JSX.IntrinsicAttributes) => <TextField {...params} />}
+                            disableFuture={true}
+                            inputFormat="yyyy/MM/dd"
+                            label="To"
+                            value={toDate}
                         />
                     </div>
                 </DialogContent>
@@ -62,6 +67,6 @@ export default function SalesTableDialog() {
                     </Button>
                 </DialogActions>
             </Dialog>
-        </>
+        </LocalizationProvider>
     );
 }

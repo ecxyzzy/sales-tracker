@@ -143,7 +143,7 @@ export default function SalesTable(props: { token: string | null }) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     return (
-        <Box sx={{ height: 400, width: '100%' }}>
+        <Box sx={{ height: '90vh', width: '100vw' }}>
             <DataGrid columns={columns} rows={rows} getRowId={(r) => r.tid} error={error} loading={loading} />
         </Box>
     );
