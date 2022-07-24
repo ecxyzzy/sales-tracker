@@ -27,6 +27,9 @@
                 "alwaysTryTypes": true,
                 "project": "tsconfig.json"
             }
+        },
+        "react": {
+            "version": "detect"
         }
     }
 }
