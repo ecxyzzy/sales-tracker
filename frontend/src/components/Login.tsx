@@ -1,7 +1,8 @@
+import { useSnackbar } from 'notistack';
 import React, { useState } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+
 import { ErrorResponse, isErrorResponse, LoginResponse } from '../types';
-import { useSnackbar } from 'notistack';
 
 export default function Login() {
     const [username, setUsername] = useState('');

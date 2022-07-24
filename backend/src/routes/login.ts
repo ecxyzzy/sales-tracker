@@ -2,6 +2,7 @@ import bcrypt from 'bcrypt';
 import { Router } from 'express';
 import jwt from 'jsonwebtoken';
 import { FieldPacket, RowDataPacket } from 'mysql2';
+
 import db from '../db';
 import { preHashPassword, sendError, sendSuccess } from '../helper';
 import logger from '../logger';

@@ -1,9 +1,11 @@
 import 'dotenv/config';
+
 import bodyParser from 'body-parser';
 import express, { ErrorRequestHandler, NextFunction, Request, Response } from 'express';
 import http from 'http';
 import https from 'https';
 import pinoHttp from 'pino-http';
+
 import { sendError } from './helper';
 import logger from './logger';
 import router from './router';

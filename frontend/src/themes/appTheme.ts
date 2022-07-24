@@ -1,5 +1,5 @@
-import type {} from '@mui/x-date-pickers/themeAugmentation';
 import { createTheme } from '@mui/material';
+import type {} from '@mui/x-date-pickers/themeAugmentation';
 
 const appTheme = createTheme({
     components: {

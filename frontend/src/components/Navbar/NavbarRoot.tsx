@@ -1,5 +1,6 @@
-import React from 'react';
 import { AppBar, Container, Toolbar } from '@mui/material';
+import React from 'react';
+
 import SalesTableDialog from './SalesTableDialog';
 
 export default function NavbarRoot() {

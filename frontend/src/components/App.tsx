@@ -1,6 +1,7 @@
+import { useSnackbar } from 'notistack';
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useSnackbar } from 'notistack';
+
 import NavbarRoot from './Navbar/NavbarRoot';
 import SalesTable from './SalesTable';
 

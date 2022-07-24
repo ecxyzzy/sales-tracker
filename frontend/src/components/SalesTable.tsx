@@ -2,11 +2,11 @@ import { Box } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+
 import {
     BackendResponse,
     ErrorResponse,
     isErrorResponse,
-    Product,
     ProductsGetResponse,
     SanitizedTransaction,
     TransactionsGetResponse,
@@ -91,49 +91,37 @@ export default function SalesTable(props: { token: string | null }) {
     const token = props.token ?? locationState?.token ?? localStorage.getItem('token');
     useEffect(() => {
         (async () => {
-            const params: Record<string, string> = {};
-            if (searchParams.has('fromDate')) {
-                // if .has() returns true, then .get() doesn't ever return null even if the field is empty
-                // @ts-ignore
-                params['fromDate'] = searchParams.get('fromDate');
-            }
-            if (searchParams.has('toDate')) {
-                // @ts-ignore
-                params['toDate'] = searchParams.get('toDate');
-            }
-            const tRes = await fetchData<TransactionsGetResponse>(
-                'transactions',
-                token,
-                params
-            );
+            const tRes = await fetchData<TransactionsGetResponse>('transactions', token, {
+                fromDate: searchParams.get('fromDate') ?? '',
+                toDate: searchParams.get('toDate') ?? '',
+            });
             const pRes = await fetchData<ProductsGetResponse>('products', token);
             const uRes = await fetchData<UsersGetResponse>('users', token);
-            for (const res of [tRes, pRes, uRes]) {
-                if (isErrorResponse(res)) {
-                    if (res.status === 403) {
-                        localStorage.removeItem('token');
-                        navigate('/login', { state: { status: 'sessionExpired' } });
-                        return;
-                    }
-                    setLoading(false);
-                    setError(true);
+            if (!(isErrorResponse(tRes) || isErrorResponse(pRes) || isErrorResponse(uRes))) {
+                setRows([]);
+                for (const transaction of tRes.payload) {
+                    setRows((prevState) => [
+                        ...prevState,
+                        {
+                            ...transaction,
+                            product: pRes.payload.filter((x) => x.pid === transaction.product)[0].productName,
+                            handler1: uRes.payload.filter((x: User) => x.uid === transaction.handler1)[0].username,
+                            handler2: uRes.payload.filter((x: User) => x.uid === transaction?.handler2)[0]?.username,
+                            handler3: uRes.payload.filter((x: User) => x.uid === transaction?.handler3)[0]?.username,
+                        },
+                    ]);
+                }
+                setLoading(false);
+            } else {
+                if ([tRes, pRes, uRes].some((x) => x.status === 403)) {
+                    localStorage.removeItem('token');
+                    navigate('/login', { state: { status: 'sessionExpired' } });
                     return;
                 }
+                setLoading(false);
+                setError(true);
+                return;
             }
-            setRows([]);
-            for (const transaction of tRes.payload) {
-                setRows((prevState) => [
-                    ...prevState,
-                    {
-                        ...transaction,
-                        product: pRes.payload.filter((x: Product) => x.pid === transaction.product)[0].productName,
-                        handler1: uRes.payload.filter((x: User) => x.uid === transaction.handler1)[0].username,
-                        handler2: uRes.payload.filter((x: User) => x.uid === transaction?.handler2)[0]?.username,
-                        handler3: uRes.payload.filter((x: User) => x.uid === transaction?.handler3)[0]?.username,
-                    },
-                ]);
-            }
-            setLoading(false);
         })().catch((e) => {
             console.error(e);
             setLoading(false);

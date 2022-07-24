@@ -38,7 +38,9 @@ export interface User {
 export interface BackendResponse {
     readonly timestamp: string;
     readonly status: number;
-    [propName: string]: any;
+    readonly error?: unknown;
+    readonly message?: unknown;
+    readonly payload?: unknown
 }
 
 export interface ErrorResponse extends BackendResponse {
