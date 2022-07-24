@@ -40,7 +40,7 @@ export interface BackendResponse {
     readonly status: number;
     readonly error?: unknown;
     readonly message?: unknown;
-    readonly payload?: unknown
+    readonly payload?: unknown;
 }
 
 export interface ErrorResponse extends BackendResponse {
