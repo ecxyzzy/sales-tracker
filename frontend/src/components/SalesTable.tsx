@@ -10,7 +10,6 @@ import {
     ProductsGetResponse,
     SanitizedTransaction,
     TransactionsGetResponse,
-    User,
     UsersGetResponse,
 } from '../types';
 
@@ -105,9 +104,9 @@ export default function SalesTable(props: { token: string | null }) {
                         {
                             ...transaction,
                             product: pRes.payload.filter((x) => x.pid === transaction.product)[0].productName,
-                            handler1: uRes.payload.filter((x: User) => x.uid === transaction.handler1)[0].username,
-                            handler2: uRes.payload.filter((x: User) => x.uid === transaction?.handler2)[0]?.username,
-                            handler3: uRes.payload.filter((x: User) => x.uid === transaction?.handler3)[0]?.username,
+                            handler1: uRes.payload.filter((x) => x.uid === transaction.handler1)[0].username,
+                            handler2: uRes.payload.filter((x) => x.uid === transaction?.handler2)[0]?.username,
+                            handler3: uRes.payload.filter((x) => x.uid === transaction?.handler3)[0]?.username,
                         },
                     ]);
                 }
