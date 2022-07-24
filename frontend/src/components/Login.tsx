@@ -49,6 +49,7 @@ export default function Login() {
             break;
         case 'sessionExpired':
             enqueueSnackbar('Your session has expired. Please log in again.', { variant: 'info' });
+            break;
     }
     if (locationState) {
         locationState.status = '';
