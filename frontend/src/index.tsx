@@ -1,6 +1,6 @@
 import { CssBaseline, ThemeProvider } from '@mui/material';
 import { SnackbarProvider } from 'notistack';
-import React from 'react';
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
@@ -13,7 +13,7 @@ import appTheme from './themes/appTheme';
 
 const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
-    <React.StrictMode>
+    <StrictMode>
         <ThemeProvider theme={appTheme}>
             <SnackbarProvider autoHideDuration={1000} maxSnack={3}>
                 <CssBaseline enableColorScheme />
@@ -35,5 +35,5 @@ root.render(
                 </BrowserRouter>
             </SnackbarProvider>
         </ThemeProvider>
-    </React.StrictMode>
+    </StrictMode>
 );

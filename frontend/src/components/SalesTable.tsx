@@ -1,6 +1,6 @@
 import { Box } from '@mui/material';
 import { DataGrid, GridColDef } from '@mui/x-data-grid';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 
 import {

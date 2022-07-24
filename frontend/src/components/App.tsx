@@ -1,5 +1,4 @@
 import { useSnackbar } from 'notistack';
-import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 
 import NavbarRoot from './Navbar/NavbarRoot';
